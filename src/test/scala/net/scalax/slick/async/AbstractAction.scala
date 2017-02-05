@@ -1,64 +1,9 @@
 package net.scalax.slick.async
 
-import slick.basic.BasicProfile
 import slick.dbio.DBIO
-import slick.lifted.Query
 
 import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
-
-trait ActionFunction[DBAction[_]] {
-
-  def byQuery[E, T](query: Query[E, T, Seq]): DBAction[Seq[T]]
-
-  def point[T](m: T): DBAction[T]
-
-  def map[T, S](m: DBAction[T], f: T => S)(implicit executor: ExecutionContext): DBAction[S]
-
-  def flatMap[T, S](m: DBAction[T], f: T => DBAction[S])(implicit executor: ExecutionContext): DBAction[S]
-
-}
-
-object ActionFunctionHelper {
-
-  implicit def DBIOActionFunction(
-    implicit
-    retrieveCv: Query[Any, Any, Seq] => BasicProfile#StreamingQueryActionExtensionMethods[Seq[Any], Any]
-  ): ActionFunction[DBIO] = new ActionFunction[DBIO] {
-    self =>
-
-    override def byQuery[E, T](query: Query[E, T, Seq]): DBIO[Seq[T]] = {
-      retrieveCv
-        .asInstanceOf[Query[E, T, Seq] => BasicProfile#StreamingQueryActionExtensionMethods[Seq[T], T]]
-        .apply(query)
-        .result
-    }
-
-    override def point[T](m: T): DBIO[T] = {
-      DBIO.successful(m)
-    }
-
-    override def map[T, S](m: DBIO[T], f: T => S)(implicit executor: ExecutionContext): DBIO[S] = {
-      m.map(f)(executor)
-    }
-
-    override def flatMap[T, S](m: DBIO[T], f: T => DBIO[S])(implicit executor: ExecutionContext): DBIO[S] = {
-      m.flatMap(f)(executor)
-    }
-
-  }
-
-  implicit class QueryConvert[E, U](query1: Query[E, U, Seq]) {
-    def toAction: ActionImpl[Seq[U]] = {
-      new ActionImpl[Seq[U]] {
-        def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction]): DBAction[Seq[U]] = {
-            actionFunction.byQuery(query1)
-        }
-      }
-    }
-  }
-
-}
 
 trait ActionImpl[T] { self =>
 
@@ -137,10 +82,13 @@ class CreateTest extends FlatSpec
   }
 
   override def beforeAll = {
+    db.run(friendTq.schema.create).futureValue
+  }
+
+  before {
     val friend1 = Friends(None, "喵", "汪")
     val friend2 = Friends(None, "jilen", "kerr")
     val friend3 = Friends(None, "小莎莎", "烟流")
-    db.run(friendTq.schema.create).futureValue
     db.run(friendTq ++= List(friend1, friend2, friend3)).futureValue
   }
 
@@ -148,7 +96,7 @@ class CreateTest extends FlatSpec
     db.run(friendTq.delete).futureValue
   }
 
-  "model" should "insert with json data" in {
+  "model" should "select with DBIO mode" in {
     import ActionFunctionHelper._
     val friendQuery = for {
       inFriend <- friendTq.toAction
@@ -159,6 +107,19 @@ class CreateTest extends FlatSpec
       }
     }
     db.run(friendQuery.result[DBIO]).futureValue
+  }
+
+  "model" should "select with sync mode" in {
+    import ActionFunctionHelper._
+    val friendQuery = for {
+      inFriend <- friendTq.toAction
+    } yield {
+      inFriend.map { s =>
+        println(s)
+        s
+      }
+    }
+    friendQuery.result[SessionConn](syncActionFunction(slick.jdbc.H2Profile)).withSession(db.createSession())
   }
 
 }
