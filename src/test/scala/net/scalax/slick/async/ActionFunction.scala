@@ -63,7 +63,7 @@ object ActionFunctionHelper {
       val invoker = new jdbcProfile.QueryInvokerImpl[T](jdbcProfile.queryCompiler.run(query.toNode).tree, null, null)
       new SessionConn[Seq[T]] {
         override def withSession(implicit session: JdbcBackend#Session): Seq[T] = {
-          invoker.results(0).right.get.toList
+          invoker.results(0)(session).right.get.toList
         }
       }
     }
