@@ -1,26 +1,34 @@
 package net.scalax.slick.async
 
 import slick.dbio.DBIO
+import slick.jdbc.H2Profile
 
 import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 
-trait ActionImpl[T] { self =>
+trait ActionImpl[T, E <: QueryFunction[T], D] { self =>
 
-  def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction]): DBAction[T]
+  val qFunction: E
+  def convert[DBAction[_]](actionFunction: ActionFunction[DBAction], qExtra: QueryExtra[T, E, DBAction], source: DBAction[T]): DBAction[D]
 
-  def map[S](f: T => S)(implicit executor: ExecutionContext): ActionImpl[S] = {
-    new ActionImpl[S] {
-      override def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction]): DBAction[S] = {
-        actionFunction.map(self.result(actionFunction), f)
+  def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction], qExtra: QueryExtra[T, E, DBAction]): DBAction[D] = {
+    convert(actionFunction, qExtra, qExtra.apply(qFunction))
+  }
+
+  def map[S](f: D => S)(implicit executor: ExecutionContext): ActionImpl[T, E, S] = {
+    new ActionImpl[T, E, S] {
+      override val qFunction = self.qFunction
+      override def convert[DBAction[_]](actionFunction: ActionFunction[DBAction], qExtra: QueryExtra[T, E, DBAction], source: DBAction[T]): DBAction[S] = {
+        actionFunction.map(self.convert(actionFunction, qExtra, source), f)
       }
     }
   }
 
-  def flatMap[S](f: T => ActionImpl[S])(implicit executor: ExecutionContext): ActionImpl[S] = {
-    new ActionImpl[S] {
-      override def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction]): DBAction[S] = {
-        actionFunction.flatMap(self.result(actionFunction), { s: T => f(s).result(actionFunction) })
+  def flatMap[S](f: D => ActionImpl[T, E, S])(implicit executor: ExecutionContext): ActionImpl[T, E, S] = {
+    new ActionImpl[T, E, S] {
+      override val qFunction = self.qFunction
+      override def convert[DBAction[_]](actionFunction: ActionFunction[DBAction], qExtra: QueryExtra[T, E, DBAction], source: DBAction[T]): DBAction[S] = {
+        actionFunction.flatMap(self.convert(actionFunction, qExtra, source), (s: D) => f(s).result(actionFunction, qExtra))
       }
     }
   }
@@ -28,13 +36,13 @@ trait ActionImpl[T] { self =>
 }
 
 object ActionImpl {
-  def successfully[T](m: T): ActionImpl[T] = {
-    new ActionImpl[T] {
+  /*def successfully[T](m: T): ActionImpl[T, E] = {
+    new ActionImpl[T, E] {
       override def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction]): DBAction[T] = {
         actionFunction.point(m)
       }
     }
-  }
+  }*/
 }
 
 import slick.jdbc.H2Profile.api._
@@ -99,7 +107,7 @@ class CreateTest extends FlatSpec
   "model" should "select with DBIO mode" in {
     import ActionFunctionHelper._
     val friendQuery = for {
-      inFriend <- friendTq.toAction
+      inFriend <- result(friendTq)
     } yield {
       inFriend.map { s =>
         println(s)
@@ -107,19 +115,25 @@ class CreateTest extends FlatSpec
       }
     }
     db.run(friendQuery.result[DBIO]).futureValue
+    db.run(update(friendTq, Friends(None, "hahahahaha", "hahahahaha")).result[DBIO]).futureValue
+    db.run(friendQuery.result[DBIO]).futureValue
   }
 
   "model" should "select with sync mode" in {
     import ActionFunctionHelper._
+    implicit def syncConvertSlick[D]: QueryExtra[Seq[D], SlcikQueryResult[D], SessionConn] = syncConvert(H2Profile)
+    implicit val syncUpdateSlick = syncUpdate(H2Profile)
     val friendQuery = for {
-      inFriend <- friendTq.toAction
+      inFriend <- result(friendTq)
     } yield {
       inFriend.map { s =>
         println(s)
         s
       }
     }
-    friendQuery.result[SessionConn](syncActionFunction(slick.jdbc.H2Profile)).withSession(db.createSession())
+    friendQuery.result[SessionConn].withSession(db.createSession())
+    update(friendTq, Friends(None, "hahahahaha", "hahahahaha")).result[SessionConn].withSession(db.createSession())
+    friendQuery.result[SessionConn].withSession(db.createSession())
   }
 
 }
