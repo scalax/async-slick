@@ -13,8 +13,8 @@ trait QueryFunction[E] {
   val key: String
 }
 
-trait SlcikQueryResult[F, E <: Seq[F]] extends QueryFunction[E] {
-  type Rep = F
+trait SlcikQueryResult[E, F <: Seq[E]] extends QueryFunction[F] {
+  type Rep = E
   val query: Query[_, Rep, Seq]
 }
 
@@ -82,7 +82,7 @@ object ActionFunctionHelper {
     override val queryConverts = Map(
       "slick.query.result" -> new QueryExtra[DBIO] {
         def apply[F](queryWrap: QueryFunction[F]): DBIO[F] = {
-          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[F, _]]
+          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, _]]
           retrieveCv.asInstanceOf[Query[_, wrap.Rep, Seq] => BasicProfile#StreamingQueryActionExtensionMethods[Seq[wrap.Rep], wrap.Rep]]
             .apply(wrap.query).result.asInstanceOf[DBIO[F]]
         }
@@ -120,7 +120,7 @@ object ActionFunctionHelper {
     override val queryConverts = Map(
       "slick.query.result" -> new QueryExtra[SessionConn] {
         def apply[F](queryWrap: QueryFunction[F]): SessionConn[F] = {
-          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[F, _]]
+          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, _]]
           val invoker = new jdbcProfile.QueryInvokerImpl[wrap.Rep](jdbcProfile.queryCompiler.run(wrap.query.toNode).tree, null, null)
           new SessionConn[F] {
             override def withSession(implicit session: JdbcBackend#Session): F = {
