@@ -1,8 +1,8 @@
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.3"
 
 scalacOptions ++= Seq("-feature", "-deprecation")
 
-val slickVersion = "3.2.0-RC1"
+val slickVersion = "3.2.1"
 
 libraryDependencies += "com.typesafe.slick" %% "slick" % slickVersion
 

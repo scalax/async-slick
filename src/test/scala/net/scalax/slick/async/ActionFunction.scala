@@ -1,128 +1,90 @@
 package net.scalax.slick.async
 
-import slick.basic.BasicProfile
-import slick.dbio.{ DBIO, Effect, NoStream, SynchronousDatabaseAction }
-import slick.jdbc.{ JdbcActionComponent, JdbcBackend, JdbcProfile }
+import slick.dbio._
+import slick.jdbc.{ JdbcBackend, JdbcProfile }
 import slick.lifted.Query
 
 import scala.language.higherKinds
-import scala.language.implicitConversions
-import scala.concurrent.ExecutionContext
-
-trait QueryFunction[E] {
-  val key: String
-}
-
-trait SlcikQueryResult[E, F <: Seq[E]] extends QueryFunction[F] {
-  type Rep = E
-  val query: Query[_, Rep, Seq]
-}
-
-trait SlickQueryUpdate extends QueryFunction[Int] {
-  type Rep
-  type Data
-  val query: Query[Rep, Data, Seq]
-  val data: Data
-}
-
-trait QueryExtra[DBAction[_]] {
-  def apply[F](queryWrap: QueryFunction[F]): DBAction[F]
-}
-
-trait ActionFunction[DBAction[_]] {
-
-  val queryConverts: Map[String, QueryExtra[DBAction]]
-
-  def point[T](m: T): DBAction[T]
-
-  def map[T, S](m: DBAction[T], f: T => S)(implicit executor: ExecutionContext): DBAction[S]
-
-  def flatMap[T, S](m: DBAction[T], f: T => DBAction[S])(implicit executor: ExecutionContext): DBAction[S]
-
-}
 
 object ActionFunctionHelper {
 
-  def result[E](query1: Query[_, E, Seq]): SlcikQueryResult[E, Seq[E]] = {
-    new SlcikQueryResult[E, Seq[E]] {
-      override val key = "slick.query.result"
-      override type Rep = E
-      override val query = query1
-    }
-  }
-
-  def update[E, U](query1: Query[E, U, Seq], data1: U): SlickQueryUpdate = {
-    new SlickQueryUpdate {
-      override val key = "slick.query.update"
-      override type Rep = E
-      override type Data = U
-      override val query = query1
-      override val data = data1
-    }
-  }
-
-  implicit class toActionConvert[E](funAction: QueryFunction[E]) {
-    def toAction = {
-      new ActionImpl[E] {
-        self =>
-        def result[DBAction[_]](implicit actionFunction: ActionFunction[DBAction]): DBAction[E] = {
-          actionFunction.queryConverts(funAction.key).apply(funAction)
-        }
+  implicit class QueryExtendsionMethod[E, U, C[_]](query: Query[E, U, C]) {
+    def asyncResult: SlcikQueryResult[U, C] = {
+      val query1 = query
+      new SlcikQueryResult[U, C] {
+        override val key = "slick.query.result"
+        override val query = query1
       }
+    }
+
+    def asyncUpdate(data: U): SlickQueryUpdate = {
+      val query1 = query
+      val data1 = data
+      new SlickQueryUpdate {
+        override val key = "slick.query.update"
+        override type Rep = E
+        override type Data = U
+        override type Coll[T] = C[T]
+        override val query = query1
+        override val data = data1
+      }
+    }
+  }
+
+  implicit class toActionConvert[E, F <: NoStream](funAction: QueryFunction[E, F]) {
+    def set[DBAction[_, _ <: NoStream]](implicit actionFunction: ActionFunction[DBAction]): DBAction[E, NoStream] = {
+      actionFunction.actionToSetOnly(withStream)
+    }
+    def withStream[DBAction[_, _ <: NoStream]](implicit actionFunction: ActionFunction[DBAction]): DBAction[E, F] = {
+      actionFunction.queryConverts.get(funAction.key).getOrElse(throw new IllegalArgumentException("Query function instance not found.")).apply(funAction)
     }
   }
 
   implicit def DBIOActionFunction(
     implicit
-    retrieveCv: Query[Any, Any, Seq] => BasicProfile#StreamingQueryActionExtensionMethods[Seq[Any], Any],
-    updateConV: Query[_, Any, Seq] => JdbcActionComponent#UpdateActionExtensionMethods[Any]
-  ): ActionFunction[DBIO] = new ActionFunction[DBIO] {
+    profile: JdbcProfile
+  ): ActionFunction[StreamingDBIO] = new ActionFunction[StreamingDBIO] {
     self =>
 
+    val jdbcProfile = profile
+    import jdbcProfile.api._
+
     override val queryConverts = Map(
-      "slick.query.result" -> new QueryExtra[DBIO] {
-        def apply[F](queryWrap: QueryFunction[F]): DBIO[F] = {
-          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, _]]
-          retrieveCv.asInstanceOf[Query[_, wrap.Rep, Seq] => BasicProfile#StreamingQueryActionExtensionMethods[Seq[wrap.Rep], wrap.Rep]]
-            .apply(wrap.query).result.asInstanceOf[DBIO[F]]
+      "slick.query.result" -> new QueryExtra[StreamingDBIO] {
+        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): StreamingDBIO[F, G] = {
+          //Set can be any other type. Will not effect the final result.
+          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, Set]]
+          wrap.query.result.asInstanceOf[StreamingDBIO[F, G]]
         }
       },
-      "slick.query.update" -> new QueryExtra[DBIO] {
-        def apply[F](queryWrap: QueryFunction[F]): DBIO[F] = {
+      "slick.query.update" -> new QueryExtra[StreamingDBIO] {
+        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): StreamingDBIO[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlickQueryUpdate]
-          updateConV.asInstanceOf[Query[_, wrap.Data, Seq] => JdbcActionComponent#UpdateActionExtensionMethods[wrap.Data]]
-            .apply(wrap.query).update(wrap.data).asInstanceOf[DBIO[F]]
+          wrap.query.update(wrap.data).asInstanceOf[StreamingDBIO[F, G]]
         }
       }
     )
 
-    override def point[T](m: T): DBIO[T] = {
-      DBIO.successful(m)
-    }
-
-    override def map[T, S](m: DBIO[T], f: T => S)(implicit executor: ExecutionContext): DBIO[S] = {
-      m.map(f)(executor)
-    }
-
-    override def flatMap[T, S](m: DBIO[T], f: T => DBIO[S])(implicit executor: ExecutionContext): DBIO[S] = {
-      m.flatMap(f)(executor)
+    override def actionToSetOnly[S, T <: NoStream](action: StreamingDBIO[S, T]): StreamingDBIO[S, NoStream] = {
+      action
     }
 
   }
 
-  trait SessionConn[T] {
-    def withSession(implicit session: JdbcBackend#Session): T
-  }
-
-  implicit def syncActionFunction(jdbcProfile: JdbcProfile): ActionFunction[SessionConn] = new ActionFunction[SessionConn] {
+  implicit def syncActionFunction(
+    implicit
+    profile: JdbcProfile
+  ): ActionFunction[SessionConn] = new ActionFunction[SessionConn] {
     self =>
+
+    val jdbcProfile = profile
 
     override val queryConverts = Map(
       "slick.query.result" -> new QueryExtra[SessionConn] {
-        def apply[F](queryWrap: QueryFunction[F]): SessionConn[F] = {
-          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, _]]
-          val invoker = new jdbcProfile.QueryInvokerImpl[wrap.Rep](jdbcProfile.queryCompiler.run(wrap.query.toNode).tree, null, null)
-          new SessionConn[F] {
+        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): SessionConn[F, G] = {
+          val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, Nothing]]
+          val invoker = new jdbcProfile.QueryInvokerImpl(jdbcProfile.queryCompiler.run(wrap.query.toNode).tree, null, null)
+          new SessionConn[F, G] {
             override def withSession(implicit session: JdbcBackend#Session): F = {
               invoker.results(0)(session).right.get.toList.asInstanceOf[F]
             }
@@ -130,7 +92,7 @@ object ActionFunctionHelper {
         }
       },
       "slick.query.update" -> new QueryExtra[SessionConn] {
-        def apply[F](queryWrap: QueryFunction[F]): SessionConn[F] = {
+        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): SessionConn[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlickQueryUpdate]
           val tree = jdbcProfile.updateCompiler.run(wrap.query.toNode).tree
 
@@ -140,37 +102,21 @@ object ActionFunctionHelper {
             override def connection = s.conn
           }
 
-          new SessionConn[F] {
+          new SessionConn[F, NoStream] {
             override def withSession(implicit session: JdbcBackend#Session): F = {
               jdbcProfile.createUpdateActionExtensionMethods(tree, null).update(wrap.data)
                 .asInstanceOf[SynchronousDatabaseAction[Int, NoStream, JdbcBackend, Effect]].run(new BlockingJdbcActionContext(session))
                 .asInstanceOf[F]
             }
-          }
+          }.asInstanceOf[SessionConn[F, G]]
         }
       }
     )
 
-    override def point[T](m: T): SessionConn[T] = {
-      new SessionConn[T] {
-        override def withSession(implicit session: JdbcBackend#Session): T = {
-          m
-        }
-      }
-    }
-
-    override def map[T, S](m: SessionConn[T], f: T => S)(implicit executor: ExecutionContext): SessionConn[S] = {
-      new SessionConn[S] {
-        override def withSession(implicit session: JdbcBackend#Session): S = {
-          f(m.withSession(session))
-        }
-      }
-    }
-
-    override def flatMap[T, S](m: SessionConn[T], f: T => SessionConn[S])(implicit executor: ExecutionContext): SessionConn[S] = {
-      new SessionConn[S] {
-        override def withSession(implicit session: JdbcBackend#Session): S = {
-          f(m.withSession(session)).withSession(session)
+    override def actionToSetOnly[S, T <: NoStream](action: SessionConn[S, T]): SessionConn[S, NoStream] = {
+      new SessionConn[S, NoStream] {
+        def withSession(implicit session: JdbcBackend#Session): S = {
+          action.withSession(session)
         }
       }
     }
