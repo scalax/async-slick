@@ -31,7 +31,7 @@ object ActionFunctionHelper {
     }
   }
 
-  implicit class toActionConvert[E, F <: NoStream](funAction: QueryFunction[E, F]) {
+  implicit class toActionConvert[E, F <: NoStream](funAction: AsyncQuery[E, F]) {
     def set[DBAction[_, _ <: NoStream]](implicit actionFunction: ActionFunction[DBAction]): DBAction[E, NoStream] = {
       actionFunction.actionToSetOnly(withStream)
     }
@@ -50,15 +50,15 @@ object ActionFunctionHelper {
     import jdbcProfile.api._
 
     override val queryConverts = Map(
-      "slick.query.result" -> new QueryExtra[StreamingDBIO] {
-        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): StreamingDBIO[F, G] = {
+      "slick.query.result" -> new QueryRoute[StreamingDBIO] {
+        def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): StreamingDBIO[F, G] = {
           //Set can be any other type. Will not effect the final result.
           val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, Set]]
           wrap.query.result.asInstanceOf[StreamingDBIO[F, G]]
         }
       },
-      "slick.query.update" -> new QueryExtra[StreamingDBIO] {
-        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): StreamingDBIO[F, G] = {
+      "slick.query.update" -> new QueryRoute[StreamingDBIO] {
+        def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): StreamingDBIO[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlickQueryUpdate]
           wrap.query.update(wrap.data).asInstanceOf[StreamingDBIO[F, G]]
         }
@@ -80,8 +80,8 @@ object ActionFunctionHelper {
     val jdbcProfile = profile
 
     override val queryConverts = Map(
-      "slick.query.result" -> new QueryExtra[SessionConn] {
-        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): SessionConn[F, G] = {
+      "slick.query.result" -> new QueryRoute[SessionConn] {
+        def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): SessionConn[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, Nothing]]
           val invoker = new jdbcProfile.QueryInvokerImpl(jdbcProfile.queryCompiler.run(wrap.query.toNode).tree, null, null)
           new SessionConn[F, G] {
@@ -91,8 +91,8 @@ object ActionFunctionHelper {
           }
         }
       },
-      "slick.query.update" -> new QueryExtra[SessionConn] {
-        def apply[F, G <: NoStream](queryWrap: QueryFunction[F, G]): SessionConn[F, G] = {
+      "slick.query.update" -> new QueryRoute[SessionConn] {
+        def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): SessionConn[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlickQueryUpdate]
           val tree = jdbcProfile.updateCompiler.run(wrap.query.toNode).tree
 
