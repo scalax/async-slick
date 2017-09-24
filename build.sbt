@@ -13,3 +13,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 libraryDependencies += "com.h2database" % "h2" % "1.4.192" % "test"
 
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.21" % "test"
+
+libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
+
+libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
