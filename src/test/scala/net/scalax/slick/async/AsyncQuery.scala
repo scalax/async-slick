@@ -1,6 +1,6 @@
 package net.scalax.slick.async
 
-import slick.dbio._
+import slick.async.dbio._
 import slick.jdbc.JdbcBackend
 import slick.lifted.Query
 

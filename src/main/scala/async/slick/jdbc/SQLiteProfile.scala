@@ -7,11 +7,11 @@ import slick.sql.SqlCapabilities
 import scala.concurrent.ExecutionContext
 import slick.SlickException
 import slick.basic.Capability
-import slick.dbio._
+import slick.async.dbio._
 import slick.ast._
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
-import slick.jdbc.meta.{ MPrimaryKey, MColumn, MTable }
+import slick.async.jdbc.meta.{ MPrimaryKey, MColumn, MTable }
 
 /**
  * Slick profile for SQLite.

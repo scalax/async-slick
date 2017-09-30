@@ -6,9 +6,9 @@ import slick.SlickException
 import slick.ast._
 import slick.ast.TypeUtil._
 import slick.basic.Capability
-import slick.dbio._
+import slick.async.dbio._
 import slick.compiler.{ Phase, CompilerState }
-import slick.jdbc.meta.MTable
+import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.relational.RelationalCapabilities
 import slick.sql.SqlCapabilities

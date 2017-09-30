@@ -1,6 +1,6 @@
 package slick.async.jdbc.meta
 
-import slick.jdbc.{ PositionedResult, ResultSetAction }
+import slick.async.jdbc.{ PositionedResult, ResultSetAction }
 import slick.jdbc.GetResult.GetString
 
 /**

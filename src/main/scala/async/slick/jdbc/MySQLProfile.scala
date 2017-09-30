@@ -10,9 +10,10 @@ import slick.ast.Util._
 import slick.ast.TypeUtil._
 import slick.basic.Capability
 import slick.compiler.{ Phase, ResolveZipJoins, CompilerState }
-import slick.jdbc.meta.{ MPrimaryKey, MColumn, MTable }
+import slick.async.jdbc.meta.{ MPrimaryKey, MColumn, MTable }
 import slick.lifted._
-import slick.relational.{ RelationalProfile, RelationalCapabilities }
+import slick.relational.RelationalCapabilities
+import slick.async.relational.RelationalProfile
 import slick.sql.SqlCapabilities
 import slick.util.{ SlickLogger, GlobalConfig, ConstArray }
 import slick.util.MacroSupport.macroSupportInterpolation

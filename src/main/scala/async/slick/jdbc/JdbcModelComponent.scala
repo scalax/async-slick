@@ -1,8 +1,8 @@
 package slick.async.jdbc
 
 import scala.concurrent.ExecutionContext
-import slick.dbio.DBIO
-import slick.jdbc.meta.MTable
+import slick.async.dbio.DBIO
+import slick.async.jdbc.meta.MTable
 import slick.model.Model
 
 trait JdbcModelComponent { self: JdbcProfile =>

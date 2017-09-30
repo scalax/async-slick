@@ -12,7 +12,7 @@ import scala.reflect.macros.{ blackbox, whitebox }
 
 import slick.SlickException
 import slick.basic.{ DatabaseConfig, StaticDatabaseConfigMacros }
-import slick.dbio.{ NoStream, Effect }
+import slick.async.dbio.{ NoStream, Effect }
 import slick.sql.{ SqlAction, SqlStreamingAction }
 import slick.util.ClassLoaderUtil
 

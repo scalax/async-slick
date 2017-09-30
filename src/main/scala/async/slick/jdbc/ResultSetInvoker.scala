@@ -1,8 +1,8 @@
 package slick.async.jdbc
 
 import java.sql.ResultSet
-import slick.dbio.Effect
-import slick.basic.BasicStreamingAction
+import slick.async.dbio.Effect
+import slick.async.basic.BasicStreamingAction
 import slick.util.CloseableIterator
 
 /**

@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 import slick.SlickException
 import slick.ast._
-import slick.relational.{ RelationalProfile, RelationalTypesComponent }
+import slick.async.relational.{ RelationalProfile, RelationalTypesComponent }
 
 trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
 

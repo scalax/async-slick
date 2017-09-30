@@ -8,8 +8,9 @@ import slick.ast.Util.nodeToNodeOps
 import slick.ast.TypeUtil._
 import slick.compiler.{ RewriteBooleans, CodeGen, CompilerState, QueryCompiler }
 import slick.lifted._
-import slick.relational.{ RelationalProfile, RelationalCapabilities, ResultConverter, CompiledMapping }
-import slick.sql.SqlProfile
+import slick.relational.{ RelationalCapabilities, ResultConverter, CompiledMapping }
+import slick.async.relational.RelationalProfile
+import slick.async.sql.SqlProfile
 import slick.util._
 import slick.util.MacroSupport.macroSupportInterpolation
 
@@ -433,7 +434,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
         buildFrom(right, None, true)
         b"\}"
       case SimpleLiteral(w) => b += w
-      case s: SimpleExpression => s.toSQL(this)
+      case s: slick.async.lifted.SimpleExpression => s.toSQL(this)
       case s: SimpleBinaryOperator => b"\(${s.left} ${s.name} ${s.right}\)"
       case n => throw new SlickException("Unexpected node " + n + " -- SQL prefix: " + b.build.sql)
     }

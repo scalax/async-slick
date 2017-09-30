@@ -8,7 +8,7 @@ import slick.ast.TypeUtil.:@
 import slick.compiler.{ Phase, QueryCompiler, InsertCompiler }
 import slick.lifted._
 import slick.relational.{ RelationalProfile, CompiledMapping }
-import slick.sql.SqlProfile
+import slick.async.sql.SqlProfile
 
 /** Abstract profile for accessing SQL databases via JDBC. */
 trait JdbcProfile extends SqlProfile with JdbcActionComponent

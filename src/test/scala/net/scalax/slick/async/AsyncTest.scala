@@ -2,7 +2,7 @@ package net.scalax.slick.async
 
 import ActionFunctionHelper._
 
-import slick.dbio.StreamingDBIO
+import slick.async.dbio.StreamingDBIO
 
 import scala.language.higherKinds
 

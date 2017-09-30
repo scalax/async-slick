@@ -1,6 +1,6 @@
 package slick.async.jdbc.meta
 
-import slick.dbio.Effect
+import slick.async.dbio.Effect
 import slick.jdbc.ResultSetAction
 import slick.basic.BasicStreamingAction
 

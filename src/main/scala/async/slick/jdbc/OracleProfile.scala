@@ -3,17 +3,18 @@ package slick.async.jdbc
 import java.util.UUID
 
 import scala.concurrent.ExecutionContext
-
 import java.sql.{ Array => _, _ }
 
 import slick.SlickException
 import slick.ast._
+import slick.async.basic.BasicStreamingAction
 import slick.compiler.{ CompilerState, Phase }
-import slick.dbio._
-import slick.jdbc.meta.{ MColumn, MTable }
+import slick.async.dbio._
+import slick.async.jdbc.meta.{ MColumn, MQName, MTable }
 import slick.lifted._
 import slick.model.ForeignKeyAction
-import slick.relational.{ RelationalCapabilities, ResultConverter, RelationalProfile }
+import slick.relational.{ RelationalCapabilities, ResultConverter }
+import slick.async.relational.RelationalProfile
 import slick.basic.Capability
 import slick.util.ConstArray
 import slick.util.MacroSupport.macroSupportInterpolation
@@ -56,6 +57,7 @@ import slick.util.MacroSupport.macroSupportInterpolation
  *
  * Updating Blob values in updatable result sets is not supported.
  */
+
 trait OracleProfile extends JdbcProfile {
 
   override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities

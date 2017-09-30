@@ -3,8 +3,8 @@ package slick.async.jdbc
 import scala.collection.mutable.Builder
 import scala.util.control.NonFatal
 
-import slick.dbio._
-import slick.sql.{ FixedSqlAction, FixedSqlStreamingAction }
+import slick.async.dbio._
+import slick.async.sql.{ FixedSqlAction, FixedSqlStreamingAction }
 import slick.util.{ DumpInfo, CloseableIterator, ignoreFollowOnError }
 
 /**

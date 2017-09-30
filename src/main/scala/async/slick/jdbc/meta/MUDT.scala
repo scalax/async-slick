@@ -1,6 +1,6 @@
 package slick.async.jdbc.meta
 
-import slick.jdbc.{ ResultSetAction, JdbcTypesComponent }
+import slick.async.jdbc.{ ResultSetAction, JdbcTypesComponent }
 
 /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getUDTs(). */
 case class MUDT(

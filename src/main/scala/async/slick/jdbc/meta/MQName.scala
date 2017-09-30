@@ -1,6 +1,6 @@
-package slick.jdbc.meta
+package slick.async.jdbc.meta
 
-import slick.jdbc.PositionedResult
+import slick.async.jdbc.PositionedResult
 
 /** A qualified name with an optional catalog and schema. */
 case class MQName(catalog: Option[String], schema: Option[String], name: String) {

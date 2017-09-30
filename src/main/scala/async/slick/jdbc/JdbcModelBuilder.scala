@@ -8,11 +8,11 @@ import java.sql.DatabaseMetaData
 
 import slick.SlickException
 import slick.ast.ColumnOption
-import slick.dbio._
-import slick.jdbc.meta._
+import slick.async.dbio._
+import slick.async.jdbc.meta._
 import slick.{ model => m }
-import slick.relational.RelationalProfile
-import slick.sql.SqlProfile
+import slick.async.relational.RelationalProfile
+import slick.async.sql.SqlProfile
 import slick.util.Logging
 
 /**

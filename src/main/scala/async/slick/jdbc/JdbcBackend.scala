@@ -9,10 +9,10 @@ import java.sql.{ Array => _, _ }
 import javax.sql.DataSource
 import javax.naming.InitialContext
 
-import slick.dbio._
+import slick.async.dbio._
 import slick.basic.DatabasePublisher
 import slick.SlickException
-import slick.relational.RelationalBackend
+import slick.async.relational.RelationalBackend
 import slick.util._
 import slick.util.ConfigExtensionMethods._
 

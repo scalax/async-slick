@@ -5,12 +5,13 @@ import scala.concurrent.ExecutionContext
 import java.util.UUID
 
 import slick.basic.Capability
-import slick.relational.{ RelationalProfile, RelationalCapabilities }
+import slick.relational.RelationalCapabilities
+import slick.async.relational.RelationalProfile
 import slick.sql.SqlCapabilities
 import slick.ast._
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.{ Phase, CompilerState }
-import slick.jdbc.meta.{ MColumn, MTable }
+import slick.async.jdbc.meta.{ MColumn, MTable }
 
 /**
  * Slick profile for H2.

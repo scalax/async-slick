@@ -4,8 +4,8 @@ import scala.concurrent.ExecutionContext
 
 import slick.ast._
 import slick.compiler.{ CompilerState, Phase }
-import slick.dbio._
-import slick.jdbc.meta.MTable
+import slick.async.dbio._
+import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.relational.RelationalCapabilities
 import slick.basic.Capability
