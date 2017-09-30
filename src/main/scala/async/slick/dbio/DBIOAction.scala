@@ -9,7 +9,7 @@ import scala.collection.generic.{ CanBuild, CanBuildFrom }
 import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 import slick.SlickException
-import slick.basic.BasicBackend
+import slick.async.basic.BasicBackend
 import slick.util.{ DumpInfo, Dumpable, ignoreFollowOnError }
 import scala.util.{ Try, Failure, Success }
 import scala.util.control.NonFatal

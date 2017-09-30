@@ -1,7 +1,7 @@
 package slick.async.jdbc.meta
 
 import java.sql._
-import slick.jdbc.{ ResultSetAction, JdbcTypesComponent }
+import slick.async.jdbc.{ ResultSetAction, JdbcTypesComponent }
 
 /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getVersionColumns(). */
 case class MVersionColumn(

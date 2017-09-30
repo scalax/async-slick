@@ -7,7 +7,8 @@ import slick.ast._
 import slick.ast.TypeUtil.:@
 import slick.compiler.{ Phase, QueryCompiler, InsertCompiler }
 import slick.lifted._
-import slick.relational.{ RelationalProfile, CompiledMapping }
+import slick.async.relational.RelationalProfile
+import slick.relational.CompiledMapping
 import slick.async.sql.SqlProfile
 
 /** Abstract profile for accessing SQL databases via JDBC. */

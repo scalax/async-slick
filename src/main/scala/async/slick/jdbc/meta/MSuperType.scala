@@ -1,6 +1,6 @@
 package slick.async.jdbc.meta
 
-import slick.jdbc.ResultSetAction
+import slick.async.jdbc.ResultSetAction
 
 /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getSuperTypes(). */
 case class MSuperType(typeName: MQName, superType: MQName) {

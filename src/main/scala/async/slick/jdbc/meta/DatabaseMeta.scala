@@ -1,7 +1,7 @@
 package slick.async.jdbc.meta
 
 import slick.async.jdbc.{ PositionedResult, ResultSetAction }
-import slick.jdbc.GetResult.GetString
+import slick.async.jdbc.GetResult.GetString
 
 /**
  * Accessor methods for various database meta data.

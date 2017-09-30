@@ -1,7 +1,7 @@
 package net.scalax.slick.async
 
 import slick.async.dbio._
-import slick.jdbc.{ JdbcBackend, JdbcProfile }
+import slick.async.jdbc.{ JdbcBackend, JdbcProfile }
 import slick.lifted.Query
 
 import scala.language.higherKinds

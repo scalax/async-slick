@@ -6,7 +6,7 @@ import slick.async.dbio.StreamingDBIO
 
 import scala.language.higherKinds
 
-import slick.jdbc.H2Profile.api._
+import slick.async.jdbc.H2Profile.api._
 
 import org.h2.jdbcx.JdbcDataSource
 import org.scalatest._

@@ -1,6 +1,6 @@
 package slick.async.jdbc
 
-import slick.sql.{ FixedSqlStreamingAction, FixedSqlAction }
+import slick.async.sql.{ FixedSqlStreamingAction, FixedSqlAction }
 import slick.async.sql.SqlActionComponent
 
 import scala.language.{ existentials, higherKinds }

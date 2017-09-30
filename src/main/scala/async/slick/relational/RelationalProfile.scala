@@ -1,7 +1,7 @@
 package slick.async.relational
 
 import slick.ast._
-import slick.basic.BasicActionComponent
+import slick.async.basic.BasicActionComponent
 import slick.compiler.{ EmulateOuterJoins, Phase, QueryCompiler }
 import slick.async.dbio._
 import slick.lifted.FunctionSymbolExtensionMethods._
@@ -73,9 +73,9 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
      * Create a `Compiled` query which selects all rows where the specified
      * key matches the parameter value.
      */
-    def findBy[P](f: (T => Rep[P]))(implicit ashape: Shape[ColumnsShapeLevel, Rep[P], P, Rep[P]], pshape: Shape[ColumnsShapeLevel, P, P, _]): CompiledFunction[Rep[P] => Query[T, U, Seq], Rep[P], P, Query[T, U, Seq], Seq[U]] = {
+    def findBy[P](f: (T => Rep[P]))(implicit ashape: Shape[ColumnsShapeLevel, Rep[P], P, Rep[P]], pshape: Shape[ColumnsShapeLevel, P, P, _]): slick.async.lifted.CompiledFunction[Rep[P] => Query[T, U, Seq], Rep[P], P, Query[T, U, Seq], Seq[U]] = {
       import self.api._
-      Compiled { (p: Rep[P]) => (q: Query[T, U, Seq]).filter(table => Library.==.column[Boolean](f(table).toNode, p.toNode)) }
+      slick.async.lifted.Compiled { (p: Rep[P]) => (q: Query[T, U, Seq]).filter(table => Library.==.column[Boolean](f(table).toNode, p.toNode)) }
     }
   }
 

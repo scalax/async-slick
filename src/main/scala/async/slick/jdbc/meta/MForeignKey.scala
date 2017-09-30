@@ -1,7 +1,7 @@
 package slick.async.jdbc.meta
 
 import java.sql._
-import slick.jdbc.{ JdbcBackend, ResultSetAction }
+import slick.async.jdbc.{ JdbcBackend, ResultSetAction }
 import slick.model.ForeignKeyAction
 
 /**

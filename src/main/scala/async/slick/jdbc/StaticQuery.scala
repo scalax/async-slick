@@ -11,9 +11,10 @@ import scala.language.experimental.macros
 import scala.reflect.macros.{ blackbox, whitebox }
 
 import slick.SlickException
-import slick.basic.{ DatabaseConfig, StaticDatabaseConfigMacros }
+import slick.basic.StaticDatabaseConfigMacros
+import slick.async.basic.DatabaseConfig
 import slick.async.dbio.{ NoStream, Effect }
-import slick.sql.{ SqlAction, SqlStreamingAction }
+import slick.async.sql.{ SqlAction, SqlStreamingAction }
 import slick.util.ClassLoaderUtil
 
 class ActionBasedSQLInterpolation(val s: StringContext) extends AnyVal {

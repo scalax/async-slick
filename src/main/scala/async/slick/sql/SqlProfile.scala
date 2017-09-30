@@ -2,7 +2,7 @@ package slick.async.sql
 
 import slick.async.basic.{ BasicAction, BasicStreamingAction }
 import slick.compiler.QueryCompiler
-import slick.relational.{ RelationalActionComponent, RelationalTableComponent }
+import slick.async.relational.{ RelationalActionComponent, RelationalTableComponent }
 import slick.async.relational.RelationalProfile
 
 import scala.language.higherKinds

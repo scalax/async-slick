@@ -1,7 +1,7 @@
 package slick.async.jdbc.meta
 
 import java.sql._
-import slick.jdbc.ResultSetAction
+import slick.async.jdbc.ResultSetAction
 
 /** A wrapper for a row in the ResultSet returned by DatabaseMetaData.getProcedures(). */
 case class MProcedure(name: MQName, remarks: String, returnsResult: Option[Boolean], specificName: Option[String]) {

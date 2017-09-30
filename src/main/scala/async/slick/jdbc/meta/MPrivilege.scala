@@ -1,6 +1,6 @@
 package slick.async.jdbc.meta
 
-import slick.jdbc.{ PositionedResult, ResultSetAction }
+import slick.async.jdbc.{ PositionedResult, ResultSetAction }
 
 /** A common privilege type which is used by MTablePrivilege and MColumnPrivilege. */
 case class MPrivilege(grantor: Option[String], grantee: String, privilege: String, grantable: Option[Boolean])
