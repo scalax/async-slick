@@ -57,8 +57,8 @@ class AsyncTest extends FlatSpec
     val friend1 = Friends(None, "喵", "汪")
     val friend2 = Friends(None, "jilen", "kerr")
     val friend3 = Friends(None, "小莎莎", "烟流")
-    //db.run(friendTq ++= List(friend1, friend2, friend3)).futureValue
-    //friendTq.result
+    db.run(friendTq ++= List(friend1, friend2, friend3)).futureValue
+    friendTq.result
   }
 
   after {

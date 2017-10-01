@@ -4,7 +4,7 @@ import slick.ast._
 import slick.compiler.{ CompilerState, Phase, QueryCompiler }
 import slick.util.ConstArray
 
-trait OracleQueryCompiler extends RelationalQueryCompiler {
+trait OracleQueryCompiler extends SqlQueryCompiler {
 
   override def capabilities: CommonCapabilities = new OracleCapabilities {}
 

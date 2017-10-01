@@ -10,7 +10,7 @@ trait CommonCapabilities {
    * The capabilities supported by this profile. This can be used to query at
    * runtime whether a specific feature is supported.
    */
-  final val capabilities: Set[Capability] = computeCapabilities
+  final lazy val capabilities: Set[Capability] = computeCapabilities
   /** Compute the capabilities. This should be overridden in subclasses as needed. */
   protected def computeCapabilities: Set[Capability] = Set.empty
 }

@@ -3,7 +3,7 @@ package slick.async.jdbc.config
 import slick.async.jdbc.ProtectGroupBy
 import slick.compiler._
 
-trait SQLServerQueryCompiler extends RelationalQueryCompiler {
+trait SQLServerQueryCompiler extends SqlQueryCompiler {
 
   override def capabilities: CommonCapabilities = new SQLServerCapabilities {}
 

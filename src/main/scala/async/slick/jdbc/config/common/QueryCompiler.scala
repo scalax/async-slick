@@ -3,7 +3,7 @@ package slick.async.jdbc.config
 import slick.compiler.{ EmulateOuterJoins, Phase, QueryCompiler }
 import slick.relational.RelationalCapabilities
 
-trait RelationalQueryCompiler {
+trait RelationalQueryCompiler11 {
 
   def capabilities: CommonCapabilities = new RelationalComponentCapabilities {}
 
@@ -14,6 +14,16 @@ trait RelationalQueryCompiler {
     val canJoinFull = capabilities.capabilities contains RelationalCapabilities.joinFull
     if (canJoinLeft && canJoinRight && canJoinFull) base
     else base.addBefore(new EmulateOuterJoins(canJoinLeft, canJoinRight), Phase.expandRecords)
+  }
+
+}
+
+trait SqlQueryCompiler extends RelationalQueryCompiler11 {
+
+  override def capabilities: CommonCapabilities = new SqlComponentCapabilities {}
+
+  override def computeQueryCompiler: QueryCompiler = {
+    super.computeQueryCompiler ++ QueryCompiler.sqlPhases
   }
 
 }

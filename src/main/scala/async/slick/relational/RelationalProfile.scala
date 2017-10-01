@@ -2,13 +2,13 @@ package slick.async.relational
 
 import slick.ast._
 import slick.async.basic.BasicActionComponent
-import slick.compiler.{ EmulateOuterJoins, Phase, QueryCompiler }
+import slick.compiler.QueryCompiler
 import slick.async.dbio._
 import slick.lifted.FunctionSymbolExtensionMethods._
 import slick.lifted._
 import slick.relational._
 import slick.async.basic.BasicProfile
-import slick.async.jdbc.config.RelationalQueryCompiler
+import slick.async.jdbc.config.RelationalQueryCompiler11
 
 import scala.language.{ higherKinds, implicitConversions }
 import scala.reflect.ClassTag
@@ -57,7 +57,7 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   final lazy val compiler = computeQueryCompiler
 
-  protected def computeQueryCompiler: QueryCompiler = new RelationalQueryCompiler {}.computeQueryCompiler
+  protected def computeQueryCompiler: QueryCompiler = new RelationalQueryCompiler11 {}.computeQueryCompiler
   /*{
     val base = QueryCompiler.standard
     val canJoinLeft = capabilities contains RelationalCapabilities.joinLeft

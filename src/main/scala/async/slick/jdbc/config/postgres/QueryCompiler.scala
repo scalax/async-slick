@@ -2,7 +2,7 @@ package slick.async.jdbc.config
 
 import slick.compiler.{ Phase, QueryCompiler }
 
-trait PostgresQueryCompiler extends RelationalQueryCompiler {
+trait PostgresQueryCompiler extends SqlQueryCompiler {
 
   override def capabilities: CommonCapabilities = new PostgresCapabilities {}
 

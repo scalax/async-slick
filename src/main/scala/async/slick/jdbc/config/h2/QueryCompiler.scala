@@ -2,7 +2,7 @@ package slick.async.jdbc.config
 
 import slick.compiler.{ Phase, QueryCompiler }
 
-trait H2QueryCompiler extends RelationalQueryCompiler {
+trait H2QueryCompiler extends SqlQueryCompiler {
 
   override def capabilities: CommonCapabilities = new H2Capabilities {}
 

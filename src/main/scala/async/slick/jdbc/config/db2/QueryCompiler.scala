@@ -1,9 +1,8 @@
 package slick.async.jdbc.config
 
-import slick.compiler.{ EmulateOuterJoins, Phase, QueryCompiler }
-import slick.relational.RelationalCapabilities
+import slick.compiler.{ Phase, QueryCompiler }
 
-trait DB2QueryCompiler extends RelationalQueryCompiler {
+trait DB2QueryCompiler extends SqlQueryCompiler {
 
   override def capabilities: CommonCapabilities = new DB2Capabilities {}
 

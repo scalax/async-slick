@@ -6,7 +6,7 @@ import slick.compiler.{ Phase, QueryCompiler, ResolveZipJoins }
 import slick.util.ConstArray
 import slick.ast.Util._
 
-trait MysqlQueryCompiler extends RelationalQueryCompiler {
+trait MysqlQueryCompiler extends SqlQueryCompiler {
 
   override def capabilities: CommonCapabilities = new MysqlCapabilities {}
 

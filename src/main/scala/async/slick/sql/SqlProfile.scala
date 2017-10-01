@@ -1,14 +1,13 @@
 package slick.async.sql
 
 import slick.async.basic.{ BasicAction, BasicStreamingAction }
-import slick.compiler.QueryCompiler
 import slick.async.relational.{ RelationalActionComponent, RelationalTableComponent }
 import slick.async.relational.RelationalProfile
 
 import scala.language.higherKinds
 import slick.async.dbio._
 import slick.ast.{ ColumnOption, Symbol, SymbolNamer, TableNode }
-import slick.sql.SqlCapabilities
+import slick.async.jdbc.config.SqlQueryCompiler
 import slick.util.DumpInfo
 
 /** Abstract profile for SQL-based databases. */
@@ -18,7 +17,8 @@ trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlAction
   @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   override val profile: SqlProfile = this
 
-  override protected def computeQueryCompiler = super.computeQueryCompiler ++ QueryCompiler.sqlPhases
+  override protected def computeQueryCompiler = new SqlQueryCompiler {}.computeQueryCompiler
+  //super.computeQueryCompiler ++ QueryCompiler.sqlPhases
   //override protected def computeCapabilities = super.computeCapabilities ++ SqlCapabilities.all
 
   type SchemaDescription = DDL
