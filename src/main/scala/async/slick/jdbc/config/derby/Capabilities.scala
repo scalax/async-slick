@@ -6,7 +6,7 @@ import slick.relational.RelationalCapabilities
 import slick.sql.SqlCapabilities
 
 trait DerbyCapabilities extends JdbcComponentCapabilities {
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  override protected lazy val computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.functionDatabase
     - RelationalCapabilities.pagingNested
     - JdbcCapabilities.returnInsertOther

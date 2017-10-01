@@ -4,9 +4,9 @@ import slick.compiler.{ Phase, QueryCompiler }
 
 trait H2QueryCompiler extends SqlQueryCompiler {
 
-  override def capabilities: CommonCapabilities = new H2Capabilities {}
+  override lazy val capabilities: CommonCapabilities = new H2Capabilities {}
 
-  override def computeQueryCompiler: QueryCompiler = {
+  override lazy val computeQueryCompiler: QueryCompiler = {
     super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
   }
 

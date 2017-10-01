@@ -5,9 +5,9 @@ import slick.compiler._
 
 trait SQLServerQueryCompiler extends SqlQueryCompiler {
 
-  override def capabilities: CommonCapabilities = new SQLServerCapabilities {}
+  override lazy val capabilities: CommonCapabilities = new SQLServerCapabilities {}
 
-  override def computeQueryCompiler: QueryCompiler = {
+  override lazy val computeQueryCompiler: QueryCompiler = {
     (super.computeQueryCompiler
       .addAfter(new RemoveTakeDrop(translateTake = false), Phase.expandSums)
       .addBefore(new ProtectGroupBy, Phase.mergeToComprehensions)

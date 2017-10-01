@@ -5,7 +5,7 @@ import slick.jdbc.JdbcCapabilities
 import slick.relational.RelationalCapabilities
 
 trait DB2Capabilities extends JdbcComponentCapabilities {
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  override protected lazy val computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.reverse
     - JdbcCapabilities.insertOrUpdate
     - JdbcCapabilities.supportsByte

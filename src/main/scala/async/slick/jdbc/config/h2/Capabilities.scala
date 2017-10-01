@@ -6,7 +6,7 @@ import slick.relational.RelationalCapabilities
 import slick.sql.SqlCapabilities
 
 trait H2Capabilities extends JdbcComponentCapabilities {
-  override protected def computeCapabilities: Set[Capability] = {
+  override protected lazy val computeCapabilities: Set[Capability] = {
     (super.computeCapabilities
       - SqlCapabilities.sequenceMin
       - SqlCapabilities.sequenceMax

@@ -5,9 +5,9 @@ import slick.relational.RelationalCapabilities
 
 trait HsqldbQueryCompiler extends SqlQueryCompiler {
 
-  override def capabilities: CommonCapabilities = new HsqldbCapabilities {}
+  override lazy val capabilities: CommonCapabilities = new HsqldbCapabilities {}
 
-  override def computeQueryCompiler: QueryCompiler = {
+  override lazy val computeQueryCompiler: QueryCompiler = {
     super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
   }
 

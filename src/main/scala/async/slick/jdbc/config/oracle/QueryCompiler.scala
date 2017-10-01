@@ -6,9 +6,9 @@ import slick.util.ConstArray
 
 trait OracleQueryCompiler extends SqlQueryCompiler {
 
-  override def capabilities: CommonCapabilities = new OracleCapabilities {}
+  override lazy val capabilities: CommonCapabilities = new OracleCapabilities {}
 
-  override def computeQueryCompiler: QueryCompiler = {
+  override lazy val computeQueryCompiler: QueryCompiler = {
     (super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       .replace(Phase.resolveZipJoinsRownumStyle)
       - Phase.fixRowNumberOrdering

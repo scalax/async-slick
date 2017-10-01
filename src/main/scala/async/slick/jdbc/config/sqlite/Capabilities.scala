@@ -6,7 +6,7 @@ import slick.relational.RelationalCapabilities
 import slick.sql.SqlCapabilities
 
 trait SQLiteCapabilities extends JdbcComponentCapabilities {
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  override protected lazy val computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.functionDatabase
     - RelationalCapabilities.functionUser
     - RelationalCapabilities.joinFull

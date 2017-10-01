@@ -8,9 +8,9 @@ import slick.ast.Util._
 
 trait MysqlQueryCompiler extends SqlQueryCompiler {
 
-  override def capabilities: CommonCapabilities = new MysqlCapabilities {}
+  override lazy val capabilities: CommonCapabilities = new MysqlCapabilities {}
 
-  override def computeQueryCompiler: QueryCompiler = {
+  override lazy val computeQueryCompiler: QueryCompiler = {
     super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
   }
 
