@@ -2,15 +2,16 @@ package slick.async.jdbc
 
 import slick.SlickException
 import slick.ast.TypeUtil.:@
-import slick.ast.{ Apply, Comprehension, ElementSymbol, IfThenElse, Join, JoinType, Library, LiteralNode, Node, OptionApply, Ordering, Path, ProductNode, Pure, QueryParameter, Ref, RowNumber, ScalaBaseType, Select, StructNode, TableNode, TermSymbol, Type, Union }
+import slick.ast.{Apply, Comprehension, ElementSymbol, IfThenElse, Join, JoinType, Library, LiteralNode, Node, OptionApply, Ordering, Path, ProductNode, Pure, QueryParameter, Ref, RowNumber, ScalaBaseType, Select, StructNode, TableNode, TermSymbol, Type, Union}
 import slick.async.sql.SqlUtilsComponent
-import slick.compiler.{ CompilerState, RewriteBooleans }
-import slick.lifted.{ SimpleBinaryOperator, SimpleFunction, SimpleLiteral }
+import slick.compiler.{CompilerState, RewriteBooleans}
+import slick.lifted.{SimpleBinaryOperator, SimpleFunction, SimpleLiteral}
 import slick.relational.RelationalCapabilities
 import slick.util._
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.ast.Util.nodeToNodeOps
-import slick.basic.Capability
+import slick.async.jdbc.config.CommonCapabilities
+//import slick.basic.Capability
 
 import scala.collection.mutable.HashMap
 
@@ -21,7 +22,7 @@ case object WherePart extends StatementPart
 case object HavingPart extends StatementPart
 case object OtherPart extends StatementPart
 
-class QueryBuilder(val tree: Node, val state: CompilerState) extends SqlUtilsComponent { queryBuilder =>
+class QueryBuilder(val tree: Node, val state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends SqlUtilsComponent { queryBuilder =>
 
   // Immutable config options (to be overridden by subclasses)
   protected val supportsTuples = true
@@ -43,7 +44,7 @@ class QueryBuilder(val tree: Node, val state: CompilerState) extends SqlUtilsCom
   protected var currentUniqueFrom: Option[TermSymbol] = None
 
   //TODO jdbc 的实现还没搬过来
-  val capabilities: Set[Capability] = Set.empty
+  //val capabilities: Set[Capability] = Set.empty
 
   def sqlBuilder = b
 
@@ -278,9 +279,9 @@ class QueryBuilder(val tree: Node, val state: CompilerState) extends SqlUtilsCom
         b"exists\[!${(if (supportsTuples) c else c.copy(select = Pure(LiteralNode(1))).infer()): Node}\]"
       case Library.Concat(l, r) if concatOperator.isDefined =>
         b"\($l${concatOperator.get}$r\)"
-      case Library.User() if !capabilities.contains(RelationalCapabilities.functionUser) =>
+      case Library.User() if !commonCapabilities.capabilities.contains(RelationalCapabilities.functionUser) =>
         b += "''"
-      case Library.Database() if !capabilities.contains(RelationalCapabilities.functionDatabase) =>
+      case Library.Database() if !commonCapabilities.capabilities.contains(RelationalCapabilities.functionDatabase) =>
         b += "''"
       case Library.Pi() if !hasPiFunction => b += pi
       case Library.Degrees(ch) if !hasRadDegConversion => b"(180.0/!${Library.Pi.typed(JdbcTypeHelper.columnTypes.bigDecimalJdbcType)}*$ch)"
