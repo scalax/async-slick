@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 import slick.ast._
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, DB2Capabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, DB2Capabilities, DB2QueryCompiler }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.relational.RelationalCapabilities
@@ -41,19 +41,19 @@ import slick.util.MacroSupport.macroSupportInterpolation
  */
 trait DB2Profile extends JdbcProfile {
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.reverse
     - JdbcCapabilities.insertOrUpdate
     - JdbcCapabilities.supportsByte
-    - JdbcCapabilities.booleanMetaData)
+    - JdbcCapabilities.booleanMetaData)*/
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
   override protected val invokerMutateType: ResultSetType = ResultSetType.ScrollSensitive
 
-  override protected def computeQueryCompiler =
-    (super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
-      + Phase.rewriteBooleans)
+  override protected def computeQueryCompiler = new DB2QueryCompiler {}.computeQueryCompiler
+  /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
+      + Phase.rewriteBooleans)*/
   override val columnTypes = new JdbcTypes
   override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)

@@ -19,7 +19,7 @@ trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlAction
   override val profile: SqlProfile = this
 
   override protected def computeQueryCompiler = super.computeQueryCompiler ++ QueryCompiler.sqlPhases
-  override protected def computeCapabilities = super.computeCapabilities ++ SqlCapabilities.all
+  //override protected def computeCapabilities = super.computeCapabilities ++ SqlCapabilities.all
 
   type SchemaDescription = DDL
 

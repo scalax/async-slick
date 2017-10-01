@@ -74,7 +74,7 @@ import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
  */
 trait SQLiteProfile extends JdbcProfile {
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.functionDatabase
     - RelationalCapabilities.functionUser
     - RelationalCapabilities.joinFull
@@ -90,7 +90,7 @@ trait SQLiteProfile extends JdbcProfile {
     - JdbcCapabilities.booleanMetaData
     - JdbcCapabilities.supportsByte
     - JdbcCapabilities.distinguishesIntTypes
-    - JdbcCapabilities.forUpdate)
+    - JdbcCapabilities.forUpdate)*/
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {

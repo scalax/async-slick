@@ -8,6 +8,7 @@ import slick.lifted.FunctionSymbolExtensionMethods._
 import slick.lifted._
 import slick.relational._
 import slick.async.basic.BasicProfile
+import slick.async.jdbc.config.RelationalQueryCompiler
 
 import scala.language.{ higherKinds, implicitConversions }
 import scala.reflect.ClassTag
@@ -26,7 +27,7 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   type Backend <: RelationalBackend
 
-  override protected def computeCapabilities = super.computeCapabilities ++ RelationalCapabilities.all
+  //override protected def computeCapabilities = super.computeCapabilities ++ RelationalCapabilities.all
 
   trait API extends super.API with ImplicitColumnTypes {
     type FastPath[T] = SimpleFastPathResultConverter[ResultConverterDomain, T]
@@ -56,14 +57,15 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   final lazy val compiler = computeQueryCompiler
 
-  protected def computeQueryCompiler: QueryCompiler = {
+  protected def computeQueryCompiler: QueryCompiler = new RelationalQueryCompiler {}.computeQueryCompiler
+  /*{
     val base = QueryCompiler.standard
     val canJoinLeft = capabilities contains RelationalCapabilities.joinLeft
     val canJoinRight = capabilities contains RelationalCapabilities.joinRight
     val canJoinFull = capabilities contains RelationalCapabilities.joinFull
     if (canJoinLeft && canJoinRight && canJoinFull) base
     else base.addBefore(new EmulateOuterJoins(canJoinLeft, canJoinRight), Phase.expandRecords)
-  }
+  }*/
 
   class TableQueryExtensionMethods[T <: RelationalProfile#Table[_], U](val q: Query[T, U, Seq] with TableQuery[T]) {
     /** Get the schema description (DDL) for this table. */

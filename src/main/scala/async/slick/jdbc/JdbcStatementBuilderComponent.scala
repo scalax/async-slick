@@ -52,18 +52,19 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     /** The compiled artifacts for 'update insert' statements. */
     lazy val updateInsert = compile(updateInsertCompiler)
 
+    //TODO 未做多样性工作(注释应该去掉)
     /** Build a list of columns and a matching `ResultConverter` for retrieving keys of inserted rows. */
     def buildReturnColumns(node: Node): (ConstArray[String], ResultConverter[JdbcResultConverterDomain, _], Boolean) = {
-      if (!capabilities.contains(JdbcCapabilities.returnInsertKey))
-        throw new SlickException("This DBMS does not allow returning columns from INSERT statements")
+      //if (!capabilities.contains(JdbcCapabilities.returnInsertKey))
+      //throw new SlickException("This DBMS does not allow returning columns from INSERT statements")
       val ResultSetMapping(_, CompiledStatement(_, ibr: InsertBuilderResult, _), CompiledMapping(rconv, _)) =
         forceInsertCompiler.run(node).tree
       if (ibr.table.baseIdentity != standardInsert.table.baseIdentity)
         throw new SlickException("Returned key columns must be from same table as inserted columns (" +
           ibr.table.baseIdentity + " != " + standardInsert.table.baseIdentity + ")")
       val returnOther = ibr.fields.length > 1 || !ibr.fields.head.options.contains(ColumnOption.AutoInc)
-      if (!capabilities.contains(JdbcCapabilities.returnInsertOther) && returnOther)
-        throw new SlickException("This DBMS allows only a single column to be returned from an INSERT, and that column must be an AutoInc column.")
+      //if (!capabilities.contains(JdbcCapabilities.returnInsertOther) && returnOther)
+      //throw new SlickException("This DBMS allows only a single column to be returned from an INSERT, and that column must be an AutoInc column.")
       (ibr.fields.map(_.name), rconv.asInstanceOf[ResultConverter[JdbcResultConverterDomain, _]], returnOther)
     }
   }

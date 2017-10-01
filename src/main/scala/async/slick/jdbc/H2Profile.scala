@@ -8,7 +8,7 @@ import slick.relational.RelationalCapabilities
 import slick.async.relational.RelationalProfile
 import slick.sql.SqlCapabilities
 import slick.ast._
-import slick.async.jdbc.config.{ CommonCapabilities, H2Capabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, H2Capabilities, H2QueryCompiler }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.jdbc.meta.{ MColumn, MTable }
@@ -40,14 +40,14 @@ import slick.async.jdbc.meta.{ MColumn, MTable }
  */
 trait H2Profile extends JdbcProfile {
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - SqlCapabilities.sequenceMin
     - SqlCapabilities.sequenceMax
     - SqlCapabilities.sequenceCycle
     - JdbcCapabilities.returnInsertOther
     - RelationalCapabilities.joinFull
     - JdbcCapabilities.insertOrUpdate
-    - RelationalCapabilities.reverse)
+    - RelationalCapabilities.reverse)*/
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -73,7 +73,8 @@ trait H2Profile extends JdbcProfile {
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
   override val columnTypes = new JdbcTypes
-  override protected def computeQueryCompiler = super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
+  override protected def computeQueryCompiler = new H2QueryCompiler {}.computeQueryCompiler
+  //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)

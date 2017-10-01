@@ -10,7 +10,7 @@ import slick.ast.Util._
 import slick.basic.Capability
 import slick.compiler._
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, SQLServerCapabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, SQLServerCapabilities, SQLServerQueryCompiler }
 import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
 import slick.async.relational.RelationalProfile
@@ -63,19 +63,19 @@ trait SQLServerProfile extends JdbcProfile {
 
   protected lazy val defaultStringType = profileConfig.getStringOpt("defaultStringType")
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - JdbcCapabilities.forceInsert
     - JdbcCapabilities.returnInsertOther
     - JdbcCapabilities.insertOrUpdate
     - SqlCapabilities.sequence
-    - JdbcCapabilities.supportsByte)
+    - JdbcCapabilities.supportsByte)*/
 
-  override protected def computeQueryCompiler =
-    (super.computeQueryCompiler
+  override protected def computeQueryCompiler = new SQLServerQueryCompiler {}.computeQueryCompiler
+  /*(super.computeQueryCompiler
       .addAfter(new RemoveTakeDrop(translateTake = false), Phase.expandSums)
       .addBefore(new ProtectGroupBy, Phase.mergeToComprehensions)
       .replace(new RemoveFieldNames(alwaysKeepSubqueryNames = true))
-      + Phase.rewriteBooleans)
+      + Phase.rewriteBooleans)*/
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
   override val columnTypes = new SQLServerJdbcTypes {}

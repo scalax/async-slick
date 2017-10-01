@@ -26,7 +26,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   val columnTypes: slick.async.jdbc.JdbcTypes = new JdbcTypes
   lazy val MappedColumnType = MappedJdbcType
 
-  override protected def computeCapabilities = super.computeCapabilities ++ JdbcCapabilities.all
+  //override protected def computeCapabilities = super.computeCapabilities ++ JdbcCapabilities.all
 
   lazy val queryCompiler = compiler + new JdbcCodeGen(_.buildSelect)
   lazy val updateCompiler = compiler + new JdbcCodeGen(_.buildUpdate)

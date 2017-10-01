@@ -10,7 +10,7 @@ import slick.ast._
 import slick.async.basic.BasicStreamingAction
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, OracleCapabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, OracleCapabilities, OracleQueryCompiler }
 import slick.async.jdbc.meta.{ MColumn, MQName, MTable }
 import slick.lifted._
 import slick.model.ForeignKeyAction
@@ -61,12 +61,12 @@ import slick.util.MacroSupport.macroSupportInterpolation
 
 trait OracleProfile extends JdbcProfile {
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.foreignKeyActions
     - JdbcCapabilities.insertOrUpdate
     - JdbcCapabilities.booleanMetaData
     - JdbcCapabilities.distinguishesIntTypes
-    - JdbcCapabilities.supportsByte)
+    - JdbcCapabilities.supportsByte)*/
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
@@ -101,11 +101,11 @@ trait OracleProfile extends JdbcProfile {
     } yield mtables
   }
 
-  override protected def computeQueryCompiler =
-    (super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
+  override protected def computeQueryCompiler = new OracleQueryCompiler {}.computeQueryCompiler
+  /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       .replace(Phase.resolveZipJoinsRownumStyle)
       - Phase.fixRowNumberOrdering
-      + Phase.rewriteBooleans + new RemoveSubqueryOrdering)
+      + Phase.rewriteBooleans + new RemoveSubqueryOrdering)*/
 
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -384,7 +384,7 @@ trait OracleProfile extends JdbcProfile {
    * Remove ORDER BY from comprehensions that are used as arguments to a
    * scalar function.
    */
-  class RemoveSubqueryOrdering extends Phase {
+  /*class RemoveSubqueryOrdering extends Phase {
     val name = "removeSubqueryOrdering"
 
     def apply(state: CompilerState) =
@@ -399,7 +399,7 @@ trait OracleProfile extends JdbcProfile {
       case n =>
         n.mapChildren(ch => rewrite(ch, false), keepType = true)
     }
-  }
+  }*/
 }
 
 object OracleProfile extends OracleProfile {

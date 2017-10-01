@@ -57,8 +57,8 @@ class AsyncTest extends FlatSpec
     val friend1 = Friends(None, "喵", "汪")
     val friend2 = Friends(None, "jilen", "kerr")
     val friend3 = Friends(None, "小莎莎", "烟流")
-    db.run(friendTq ++= List(friend1, friend2, friend3)).futureValue
-    friendTq.result
+    //db.run(friendTq ++= List(friend1, friend2, friend3)).futureValue
+    //friendTq.result
   }
 
   after {
@@ -66,17 +66,23 @@ class AsyncTest extends FlatSpec
   }
 
   "model" should "select with DBIO mode" in {
-    val friendQuery = for {
-      inFriend <- friendTq.asyncResult.set[StreamingDBIO]
-    } yield {
-      inFriend.map { s =>
-        println(s)
-        s
+    try {
+      val friendQuery = for {
+        inFriend <- friendTq.asyncResult.set[StreamingDBIO]
+      } yield {
+        inFriend.map { s =>
+          println(s)
+          s
+        }
       }
+      db.run(friendQuery).futureValue
+      db.run(friendTq.asyncUpdate(Friends(None, "hahahahaha", "hahahahaha")).set[StreamingDBIO]).futureValue
+      db.run(friendQuery).futureValue
+    } catch {
+      case e: Exception =>
+        logger.error("error", e)
+        throw e
     }
-    db.run(friendQuery).futureValue
-    db.run(friendTq.asyncUpdate(Friends(None, "hahahahaha", "hahahahaha")).set[StreamingDBIO]).futureValue
-    db.run(friendQuery).futureValue
   }
 
   "model" should "select with sync mode" in {

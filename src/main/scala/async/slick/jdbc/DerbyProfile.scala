@@ -6,7 +6,7 @@ import slick.ast._
 import slick.ast.TypeUtil._
 import slick.basic.Capability
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, DerbyCapabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, DerbyCapabilities, DerbyQueryCompiler }
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
@@ -74,7 +74,7 @@ import slick.util.MacroSupport.macroSupportInterpolation
  */
 trait DerbyProfile extends JdbcProfile {
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.functionDatabase
     - RelationalCapabilities.pagingNested
     - JdbcCapabilities.returnInsertOther
@@ -88,7 +88,7 @@ trait DerbyProfile extends JdbcProfile {
     - RelationalCapabilities.reverse
     - JdbcCapabilities.booleanMetaData
     - JdbcCapabilities.supportsByte
-    - RelationalCapabilities.repeat)
+    - RelationalCapabilities.repeat)*/
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -102,7 +102,8 @@ trait DerbyProfile extends JdbcProfile {
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
-  override protected def computeQueryCompiler = super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
+  override protected def computeQueryCompiler = new DerbyQueryCompiler {}.computeQueryCompiler
+  //super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
   override val columnTypes = new DerbyJdbcTypes {}
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)

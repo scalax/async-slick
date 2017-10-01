@@ -9,7 +9,7 @@ import slick.ast._
 import slick.basic.Capability
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, HsqldbCapabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, HsqldbCapabilities, HsqldbQueryCompiler }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.sql.SqlCapabilities
@@ -37,9 +37,9 @@ import slick.util.MacroSupport.macroSupportInterpolation
  */
 trait HsqldbProfile extends JdbcProfile {
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - SqlCapabilities.sequenceCurr
-    - JdbcCapabilities.insertOrUpdate)
+    - JdbcCapabilities.insertOrUpdate)*/
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -54,8 +54,8 @@ trait HsqldbProfile extends JdbcProfile {
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
-  override protected def computeQueryCompiler =
-    super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
+  override protected def computeQueryCompiler = new HsqldbQueryCompiler {}.computeQueryCompiler
+  //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
   override val columnTypes = new JdbcTypes
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)

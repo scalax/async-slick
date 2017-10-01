@@ -7,7 +7,7 @@ import slick.SlickException
 import slick.ast._
 import slick.ast.Util._
 import slick.ast.TypeUtil._
-import slick.async.jdbc.config.{ CommonCapabilities, MysqlCapabilities }
+import slick.async.jdbc.config.{ CommonCapabilities, MysqlCapabilities, MysqlQueryCompiler }
 import slick.basic.Capability
 import slick.compiler.{ CompilerState, Phase, ResolveZipJoins }
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
@@ -60,13 +60,13 @@ import slick.util.ConfigExtensionMethods.configExtensionMethods
 trait MySQLProfile extends JdbcProfile { profile =>
   import MySQLProfile.{ RowNum, RowNumGen }
 
-  override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
+  /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - JdbcCapabilities.returnInsertOther
     - SqlCapabilities.sequenceLimited
     - RelationalCapabilities.joinFull
     - JdbcCapabilities.nullableNoDefault
     - JdbcCapabilities.distinguishesIntTypes //https://github.com/slick/slick/pull/1735
-  )
+  )*/
 
   override protected[this] def loadProfileConfig: Config = {
     if (!GlobalConfig.profileConfig("slick.driver.MySQL").entrySet().isEmpty)
@@ -119,7 +119,8 @@ trait MySQLProfile extends JdbcProfile { profile =>
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
   override val columnTypes = new MySQLJdbcTypes {}
-  override protected def computeQueryCompiler = super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
+  override protected def computeQueryCompiler = new MysqlQueryCompiler {}.computeQueryCompiler
+  //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -150,7 +151,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
 
   protected lazy val defaultStringType = profileConfig.getStringOpt("defaultStringType")
 
-  class MySQLResolveZipJoins extends ResolveZipJoins {
+  /*class MySQLResolveZipJoins extends ResolveZipJoins {
     // MySQL does not support ROW_NUMBER() but you can manually increment a variable in the SELECT
     // clause to emulate it. See http://stackoverflow.com/a/1895127/458687 for an example.
     // According to http://dev.mysql.com/doc/refman/5.0/en/user-variables.html this should not be
@@ -172,7 +173,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
         case r @ Ref(s) if s == s1 => r.untyped
       }), Subquery.Default).infer()
     }
-  }
+  }*/
 
   /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val supportsCast = false
