@@ -3,19 +3,19 @@ package slick.async.jdbc
 import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContext
-
 import slick.SlickException
 import slick.ast._
 import slick.ast.Util._
 import slick.ast.TypeUtil._
+import slick.async.jdbc.config.{ CommonCapabilities, MysqlCapabilities }
 import slick.basic.Capability
-import slick.compiler.{ Phase, ResolveZipJoins, CompilerState }
-import slick.async.jdbc.meta.{ MPrimaryKey, MColumn, MTable }
+import slick.compiler.{ CompilerState, Phase, ResolveZipJoins }
+import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
 import slick.lifted._
 import slick.relational.RelationalCapabilities
 import slick.async.relational.RelationalProfile
 import slick.sql.SqlCapabilities
-import slick.util.{ SlickLogger, GlobalConfig, ConstArray }
+import slick.util.{ ConstArray, GlobalConfig, SlickLogger }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.util.ConfigExtensionMethods.configExtensionMethods
 
@@ -174,7 +174,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     }
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val supportsCast = false
     override protected val parenthesizeNestedRHSJoin = true
     override protected val quotedJdbcFns = Some(Nil)

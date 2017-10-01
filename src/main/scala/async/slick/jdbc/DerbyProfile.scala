@@ -1,13 +1,13 @@
 package slick.async.jdbc
 
 import scala.concurrent.ExecutionContext
-
 import slick.SlickException
 import slick.ast._
 import slick.ast.TypeUtil._
 import slick.basic.Capability
 import slick.async.dbio._
-import slick.compiler.{ Phase, CompilerState }
+import slick.async.jdbc.config.{ CommonCapabilities, DerbyCapabilities }
+import slick.compiler.{ CompilerState, Phase }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.relational.RelationalCapabilities
@@ -119,7 +119,7 @@ trait DerbyProfile extends JdbcProfile {
   //TODO 目前为了剥离 QueryBuilder 未实现
   //override val scalarFrom = Some("sysibm.sysdummy1")
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val concatOperator = Some("||")
     override protected val supportsTuples = false
     override protected val supportsLiteralGroupBy = true

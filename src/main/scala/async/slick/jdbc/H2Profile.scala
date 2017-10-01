@@ -1,7 +1,6 @@
 package slick.async.jdbc
 
 import scala.concurrent.ExecutionContext
-
 import java.util.UUID
 
 import slick.basic.Capability
@@ -9,8 +8,9 @@ import slick.relational.RelationalCapabilities
 import slick.async.relational.RelationalProfile
 import slick.sql.SqlCapabilities
 import slick.ast._
+import slick.async.jdbc.config.{ CommonCapabilities, H2Capabilities }
 import slick.util.MacroSupport.macroSupportInterpolation
-import slick.compiler.{ Phase, CompilerState }
+import slick.compiler.{ CompilerState, Phase }
 import slick.async.jdbc.meta.{ MColumn, MTable }
 
 /**
@@ -87,7 +87,7 @@ trait H2Profile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val concatOperator = Some("||")
     override protected val alwaysAliasSubqueries = false
     override protected val supportsLiteralGroupBy = true

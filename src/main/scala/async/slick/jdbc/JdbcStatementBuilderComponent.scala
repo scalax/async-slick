@@ -6,9 +6,10 @@ import slick.SlickException
 import slick.ast._
 import slick.ast.Util.nodeToNodeOps
 import slick.ast.TypeUtil._
-import slick.compiler.{ RewriteBooleans, CodeGen, CompilerState, QueryCompiler }
+import slick.async.jdbc.config.CommonCapabilities
+import slick.compiler.{ CodeGen, CompilerState, QueryCompiler, RewriteBooleans }
 import slick.lifted._
-import slick.relational.{ RelationalCapabilities, ResultConverter, CompiledMapping }
+import slick.relational.{ CompiledMapping, RelationalCapabilities, ResultConverter }
 import slick.async.relational.RelationalProfile
 import slick.async.sql.SqlProfile
 import slick.util._
@@ -92,7 +93,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   //TODO 目前为了剥离 QueryBuilder 未实现
   //val scalarFrom: Option[String] = None
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends slick.async.jdbc.QueryBuilder(tree, state)
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends slick.async.jdbc.QueryBuilder(tree, state)(commonCapabilities)
 
   /** Builder for SELECT and UPDATE statements. */
   /*class QueryBuilder(val tree: Node, val state: CompilerState) { queryBuilder =>

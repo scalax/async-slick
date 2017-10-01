@@ -4,12 +4,12 @@ import java.util.UUID
 import java.sql.{ PreparedStatement, ResultSet }
 
 import scala.concurrent.ExecutionContext
-
 import slick.ast._
 import slick.basic.Capability
-import slick.compiler.{ Phase, CompilerState }
+import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.meta.{ MIndexInfo, MColumn, MTable }
+import slick.async.jdbc.config.{ CommonCapabilities, PostgresCapabilities }
+import slick.async.jdbc.meta.{ MColumn, MIndexInfo, MTable }
 import slick.async.relational.RelationalProfile
 import slick.util.ConstArray
 import slick.util.MacroSupport.macroSupportInterpolation
@@ -157,7 +157,7 @@ trait PostgresProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val concatOperator = Some("||")
     override protected val quotedJdbcFns = Some(Vector(Library.Database, Library.User))
 

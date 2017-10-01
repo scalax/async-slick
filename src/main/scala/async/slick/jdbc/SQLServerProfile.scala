@@ -2,20 +2,20 @@ package slick.async.jdbc
 
 import scala.concurrent.ExecutionContext
 import scala.reflect.{ ClassTag, classTag }
-import java.sql.{ Timestamp, Date, Time, ResultSet }
+import java.sql.{ Date, ResultSet, Time, Timestamp }
 
 import com.typesafe.config.Config
-
 import slick.ast._
 import slick.ast.Util._
 import slick.basic.Capability
 import slick.compiler._
 import slick.async.dbio._
+import slick.async.jdbc.config.{ CommonCapabilities, SQLServerCapabilities }
 import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
 import slick.async.relational.RelationalProfile
 import slick.sql.SqlCapabilities
-import slick.util.{ SlickLogger, ConstArray, GlobalConfig }
+import slick.util.{ ConstArray, GlobalConfig, SlickLogger }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.util.ConfigExtensionMethods._
 
@@ -140,7 +140,7 @@ trait SQLServerProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val supportsTuples = false
     override protected val concatOperator = Some("+")
 

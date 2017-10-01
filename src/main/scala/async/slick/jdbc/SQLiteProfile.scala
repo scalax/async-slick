@@ -1,6 +1,7 @@
 package slick.async.jdbc
 
-import java.sql.{ Timestamp, Time, Date }
+import java.sql.{ Date, Time, Timestamp }
+
 import slick.relational.RelationalCapabilities
 import slick.sql.SqlCapabilities
 
@@ -9,9 +10,10 @@ import slick.SlickException
 import slick.basic.Capability
 import slick.async.dbio._
 import slick.ast._
+import slick.async.jdbc.config.{ CommonCapabilities, SQLiteCapabilities }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
-import slick.async.jdbc.meta.{ MPrimaryKey, MColumn, MTable }
+import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
 
 /**
  * Slick profile for SQLite.
@@ -159,7 +161,7 @@ trait SQLiteProfile extends JdbcProfile {
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val supportsTuples = false
     override protected val concatOperator = Some("||")
     override protected val parenthesizeNestedRHSJoin = true

@@ -2,10 +2,10 @@ package slick.async.jdbc
 
 import slick.SlickException
 import slick.ast.TypeUtil.:@
-import slick.ast.{Apply, Comprehension, ElementSymbol, IfThenElse, Join, JoinType, Library, LiteralNode, Node, OptionApply, Ordering, Path, ProductNode, Pure, QueryParameter, Ref, RowNumber, ScalaBaseType, Select, StructNode, TableNode, TermSymbol, Type, Union}
+import slick.ast.{ Apply, Comprehension, ElementSymbol, IfThenElse, Join, JoinType, Library, LiteralNode, Node, OptionApply, Ordering, Path, ProductNode, Pure, QueryParameter, Ref, RowNumber, ScalaBaseType, Select, StructNode, TableNode, TermSymbol, Type, Union }
 import slick.async.sql.SqlUtilsComponent
-import slick.compiler.{CompilerState, RewriteBooleans}
-import slick.lifted.{SimpleBinaryOperator, SimpleFunction, SimpleLiteral}
+import slick.compiler.{ CompilerState, RewriteBooleans }
+import slick.lifted.{ SimpleBinaryOperator, SimpleFunction, SimpleLiteral }
 import slick.relational.RelationalCapabilities
 import slick.util._
 import slick.util.MacroSupport.macroSupportInterpolation

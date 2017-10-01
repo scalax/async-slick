@@ -7,8 +7,9 @@ import scala.concurrent.ExecutionContext
 import slick.SlickException
 import slick.ast._
 import slick.basic.Capability
-import slick.compiler.{ Phase, CompilerState }
+import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
+import slick.async.jdbc.config.{ CommonCapabilities, HsqldbCapabilities }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.sql.SqlCapabilities
@@ -73,7 +74,7 @@ trait HsqldbProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
     override protected val concatOperator = Some("||")
     override protected val alwaysAliasSubqueries = false
     override protected val supportsLiteralGroupBy = true

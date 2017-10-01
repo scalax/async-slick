@@ -1,10 +1,10 @@
 package slick.async.jdbc
 
 import scala.concurrent.ExecutionContext
-
 import slick.ast._
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
+import slick.async.jdbc.config.{ CommonCapabilities, DB2Capabilities }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.relational.RelationalCapabilities
@@ -71,7 +71,7 @@ trait DB2Profile extends JdbcProfile {
   //TODO 目前为了剥离 QueryBuilder 未实现
   //override val scalarFrom = Some("sysibm.sysdummy1")
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
 
     override protected val hasPiFunction = false
     override protected val hasRadDegConversion = false
