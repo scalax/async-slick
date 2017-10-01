@@ -179,11 +179,11 @@ trait SQLServerProfile extends JdbcProfile {
 
     override def expr(n: Node, skipParens: Boolean = false): Unit = n match {
       // Cast bind variables of type TIME to TIME (otherwise they're treated as TIMESTAMP)
-      case c @ LiteralNode(v) if c.volatileHint && jdbcTypeFor(c.nodeType) == columnTypes.timeJdbcType =>
+      case c @ LiteralNode(v) if c.volatileHint && JdbcTypeHelper.jdbcTypeFor(c.nodeType) == columnTypes.timeJdbcType =>
         b"cast("
         super.expr(n, skipParens)
         b" as ${columnTypes.timeJdbcType.sqlTypeName(None)})"
-      case QueryParameter(extractor, tpe, _) if jdbcTypeFor(tpe) == columnTypes.timeJdbcType =>
+      case QueryParameter(extractor, tpe, _) if JdbcTypeHelper.jdbcTypeFor(tpe) == columnTypes.timeJdbcType =>
         b"cast("
         super.expr(n, skipParens)
         b" as ${columnTypes.timeJdbcType.sqlTypeName(None)})"

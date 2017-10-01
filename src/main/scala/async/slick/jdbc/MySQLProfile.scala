@@ -180,7 +180,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     override protected val quotedJdbcFns = Some(Nil)
 
     override def expr(n: Node, skipParens: Boolean = false): Unit = n match {
-      case Library.Cast(ch) :@ JdbcType(ti, _) =>
+      case Library.Cast(ch) :@ JdbcTypeHelper(ti, _) =>
         val tn = if (ti == columnTypes.stringJdbcType) "VARCHAR" else if (ti == columnTypes.bigDecimalJdbcType) "DECIMAL" else ti.sqlTypeName(None)
         b"\({fn convert(!${ch},$tn)}\)"
       case Library.NextValue(SequenceNode(name)) => b"`${name + "_nextval"}()"
@@ -263,7 +263,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       import seq.integral._
-      val sqlType = profile.jdbcTypeFor(seq.tpe).sqlTypeName(None)
+      val sqlType = JdbcTypeHelper.jdbcTypeFor(seq.tpe).sqlTypeName(None)
       val t = sqlType + " not null"
       val increment = seq._increment.getOrElse(one)
       val desc = increment < zero

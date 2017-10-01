@@ -52,7 +52,7 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
     }
   }
 
-  object JdbcType {
+  /*object JdbcType {
     def unapply(t: Type) = Some((jdbcTypeFor(t), t.isInstanceOf[OptionType]))
   }
 
@@ -72,7 +72,7 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
     case t: OptionType => jdbcTypeFor(t.elementType)
     case t: ErasedScalaBaseType[_, _] => jdbcTypeFor(t.erasure)
     case t => throw new SlickException("JdbcProfile has no JdbcType for type " + t)
-  }): JdbcType[_]).asInstanceOf[JdbcType[Any]]
+  }): JdbcType[_]).asInstanceOf[JdbcType[Any]]*/
 
   def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
     case java.sql.Types.VARCHAR =>

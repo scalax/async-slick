@@ -70,29 +70,32 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     }
   }
 
-  abstract class StatementPart
+  /*abstract class StatementPart
   case object SelectPart extends StatementPart
   case object FromPart extends StatementPart
   case object WherePart extends StatementPart
   case object HavingPart extends StatementPart
-  case object OtherPart extends StatementPart
+  case object OtherPart extends StatementPart*/
 
   /** Create a SQL representation of a literal value. */
-  def valueToSQLLiteral(v: Any, tpe: Type): String = {
-    val JdbcType(ti, option) = tpe
+  /*def valueToSQLLiteral(v: Any, tpe: Type): String = {
+    val JdbcTypeHelper(ti, option) = tpe
     if (option) v.asInstanceOf[Option[Any]].fold("null")(ti.valueToSQLLiteral)
     else ti.valueToSQLLiteral(v)
-  }
+  }*/
 
   // Immutable config options (to be overridden by subclasses)
   /**
    * The table name for scalar selects (e.g. "select 42 from DUAL;"), or `None` for
    * scalar selects without a FROM clause ("select 42;").
    */
-  val scalarFrom: Option[String] = None
+  //TODO 目前为了剥离 QueryBuilder 未实现
+  //val scalarFrom: Option[String] = None
+
+  class QueryBuilder(tree: Node, state: CompilerState) extends slick.async.jdbc.QueryBuilder(tree, state)
 
   /** Builder for SELECT and UPDATE statements. */
-  class QueryBuilder(val tree: Node, val state: CompilerState) { queryBuilder =>
+  /*class QueryBuilder(val tree: Node, val state: CompilerState) { queryBuilder =>
 
     // Immutable config options (to be overridden by subclasses)
     protected val supportsTuples = true
@@ -312,7 +315,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
           case field :: Nil => b += symbolName(field)
           case _ => throw new SlickException("Cannot resolve " + p + " as field or view")
         }
-      case (n @ LiteralNode(v)) :@ JdbcType(ti, option) =>
+      case (n @ LiteralNode(v)) :@ JdbcTypeHelper(ti, option) =>
         if (n.volatileHint || !ti.hasLiteralForm) b +?= { (p, idx, param) =>
           if (option) ti.setOption(v.asInstanceOf[Option[Any]], p, idx)
           else ti.setValue(v, p, idx)
@@ -375,7 +378,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
         case Library.Cast(ch @ _*) =>
           val tn =
             if (ch.length == 2) ch(1).asInstanceOf[LiteralNode].value.asInstanceOf[String]
-            else jdbcTypeFor(n.nodeType).sqlTypeName(None)
+            else JdbcTypeHelper.jdbcTypeFor(n.nodeType).sqlTypeName(None)
           if (supportsCast) b"cast(${ch(0)} as $tn)"
           else b"{fn convert(!${ch(0)},$tn)}"
         case Library.SilentCast(ch) => b"$ch"
@@ -407,7 +410,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
         }
         b" end)"
       case OptionApply(ch) => expr(ch, skipParens)
-      case QueryParameter(extractor, JdbcType(ti, option), _) =>
+      case QueryParameter(extractor, JdbcTypeHelper(ti, option), _) =>
         b +?= { (p, idx, param) =>
           if (option) ti.setOption(extractor(param).asInstanceOf[Option[Any]], p, idx)
           else ti.setValue(extractor(param), p, idx)
@@ -494,7 +497,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
       }
       b.build
     }
-  }
+  }*/
 
   /** Builder for INSERT statements. */
   class InsertBuilder(val ins: Insert) {
@@ -556,7 +559,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     override def buildInsert: InsertBuilderResult = {
       val start = buildMergeStart
       val end = buildMergeEnd
-      val paramSel = "select " + allNames.map(n => "? as " + n).iterator.mkString(",") + scalarFrom.map(n => " from " + n).getOrElse("")
+      val paramSel = "select " + allNames.map(n => "? as " + n).iterator.mkString(",") + JdbcTypeHelper.scalarFrom.map(n => " from " + n).getOrElse("")
       // We'd need a way to alias the column names at the top level in order to support merges from a source Query
       new InsertBuilderResult(table, start + paramSel + end, syms)
     }
@@ -703,7 +706,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
   /** Builder for column specifications in DDL statements. */
   class ColumnDDLBuilder(column: FieldSymbol) {
-    protected val JdbcType(jdbcType, isOption) = column.tpe
+    protected val JdbcTypeHelper(jdbcType, isOption) = column.tpe
     protected var sqlType: String = null
     protected var varying: Boolean = false
     protected var size: Option[Int] = None
@@ -733,7 +736,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
       case ColumnOption.AutoInc => autoIncrement = true
       case ColumnOption.PrimaryKey => primaryKey = true
       case ColumnOption.Unique => unique = true
-      case RelationalProfile.ColumnOption.Default(v) => defaultLiteral = valueToSQLLiteral(v, column.tpe)
+      case RelationalProfile.ColumnOption.Default(v) => defaultLiteral = JdbcTypeHelper.valueToSQLLiteral(v, column.tpe)
     }
 
     def appendType(sb: StringBuilder): Unit = sb append sqlType

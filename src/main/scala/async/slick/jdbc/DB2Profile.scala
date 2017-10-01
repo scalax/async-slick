@@ -68,7 +68,8 @@ trait DB2Profile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  override val scalarFrom = Some("sysibm.sysdummy1")
+  //TODO 目前为了剥离 QueryBuilder 未实现
+  //override val scalarFrom = Some("sysibm.sysdummy1")
 
   class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
 
@@ -151,7 +152,7 @@ trait DB2Profile extends JdbcProfile {
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       val b = new StringBuilder append "create sequence " append quoteIdentifier(seq.name)
-      b append " as " append jdbcTypeFor(seq.tpe).sqlTypeName(None)
+      b append " as " append JdbcTypeHelper.jdbcTypeFor(seq.tpe).sqlTypeName(None)
       seq._start.foreach { b append " start with " append _ }
       seq._increment.foreach { b append " increment by " append _ }
       seq._minValue.foreach { b append " minvalue " append _ }

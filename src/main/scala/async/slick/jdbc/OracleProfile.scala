@@ -127,7 +127,8 @@ trait OracleProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  override val scalarFrom = Some("sys.dual")
+  //TODO 目前为了剥离 QueryBuilder 未实现
+  //override val scalarFrom = Some("sys.dual")
 
   class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val supportsTuples = false
@@ -149,7 +150,7 @@ trait OracleProfile extends JdbcProfile {
         val cols = (left.children zip right.children).force
         b.sep(cols, " and ") { case (l, r) => expr(Library.==.typed[Boolean](l, r)) }
         b"\)"
-      case Library.==(l, r) if (l.nodeType != UnassignedType) && jdbcTypeFor(l.nodeType).sqlType == Types.BLOB =>
+      case Library.==(l, r) if (l.nodeType != UnassignedType) && JdbcTypeHelper.jdbcTypeFor(l.nodeType).sqlType == Types.BLOB =>
         b"\(dbms_lob.compare($l, $r) = 0\)"
       case _ => super.expr(c, skipParens)
     }

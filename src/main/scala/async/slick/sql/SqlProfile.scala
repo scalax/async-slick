@@ -111,7 +111,7 @@ object SqlProfile {
   }
 }
 
-trait SqlUtilsComponent { self: SqlProfile =>
+trait SqlUtilsComponent { self /*: SqlProfile*/ =>
 
   /** quotes identifiers to avoid collisions with SQL keywords and other syntax issues */
   def quoteIdentifier(id: String): String = {
