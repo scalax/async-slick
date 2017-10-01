@@ -42,7 +42,7 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
     def ++(other: SchemaDescription): SchemaDescription
   }
 
-  trait API extends slick.async.lifted.Aliases with ExtensionMethodConversions {
+  trait API extends slick.async.lifted.LiftedAliases with slick.async.dbio.DBIOAliases with ExtensionMethodConversions {
     type Database = Backend#Database
     val Database = backend.Database
     type Session = Backend#Session
