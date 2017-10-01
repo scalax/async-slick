@@ -103,8 +103,8 @@ trait DerbyProfile extends JdbcProfile {
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
   override protected def computeQueryCompiler = super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
-  override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override val columnTypes = new DerbyJdbcTypes {}
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -119,7 +119,7 @@ trait DerbyProfile extends JdbcProfile {
   //TODO 目前为了剥离 QueryBuilder 未实现
   //override val scalarFrom = Some("sysibm.sysdummy1")
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")
     override protected val supportsTuples = false
     override protected val supportsLiteralGroupBy = true
@@ -171,7 +171,7 @@ trait DerbyProfile extends JdbcProfile {
       case Library.CurrentValue(_*) => throw new SlickException("Derby does not support CURRVAL")
       case _ => super.expr(c, skipParens)
     }
-  }
+  }*/
 
   class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
@@ -218,8 +218,7 @@ trait DerbyProfile extends JdbcProfile {
       DDL(b.toString, "DROP SEQUENCE " + quoteIdentifier(seq.name))
     }
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val uuidJdbcType = new UUIDJdbcType
 
@@ -233,7 +232,7 @@ trait DerbyProfile extends JdbcProfile {
       override def sqlType = java.sql.Types.BINARY
       override def sqlTypeName(sym: Option[FieldSymbol]) = "CHAR(16) FOR BIT DATA"
     }
-  }
+  }*/
 }
 
 object DerbyProfile extends DerbyProfile

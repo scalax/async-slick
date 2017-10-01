@@ -153,7 +153,7 @@ trait SQLiteProfile extends JdbcProfile {
       .map(_.filter(_.name.name.toLowerCase != "sqlite_sequence"))
 
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLiteQueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): super.InsertBuilder = new UpsertBuilder(node)
   override def createInsertBuilder(node: Insert): super.InsertBuilder = new InsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -161,7 +161,7 @@ trait SQLiteProfile extends JdbcProfile {
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val supportsTuples = false
     override protected val concatOperator = Some("||")
     override protected val parenthesizeNestedRHSJoin = true
@@ -202,7 +202,7 @@ trait SQLiteProfile extends JdbcProfile {
       case Library.Repeat(n, times) => b"replace(substr(quote(zeroblob(($times + 1) / 2)), 3, $times), '0', $n)"
       case _ => super.expr(c, skipParens)
     }
-  }
+  }*/
 
   /* Extending super.InsertBuilder here instead of super.UpsertBuilder. INSERT OR REPLACE is almost identical to INSERT. */
   class UpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {

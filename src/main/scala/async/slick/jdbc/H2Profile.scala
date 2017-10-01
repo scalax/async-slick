@@ -74,7 +74,7 @@ trait H2Profile extends JdbcProfile {
 
   override val columnTypes = new JdbcTypes
   override protected def computeQueryCompiler = super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
@@ -87,7 +87,7 @@ trait H2Profile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")
     override protected val alwaysAliasSubqueries = false
     override protected val supportsLiteralGroupBy = true
@@ -106,7 +106,7 @@ trait H2Profile extends JdbcProfile {
       case (None, Some(d)) => b"\nlimit -1 offset $d"
       case _ =>
     }
-  }
+  }*/
 
   class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {

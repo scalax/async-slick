@@ -10,7 +10,7 @@ object JdbcTypeHelper {
 
   def unapply(t: Type) = Some((JdbcTypeHelper.jdbcTypeFor(t), t.isInstanceOf[OptionType]))
 
-  val columnTypes = new JdbcTypes
+  val columnTypes = new JdbcTypes {}
 
   def jdbcTypeFor(t: Type): slick.async.jdbc.JdbcType[Any] = ((t.structural match {
     case tmd: slick.async.jdbc.JdbcType[_] => tmd
@@ -40,7 +40,7 @@ object JdbcTypeHelper {
 
 }
 
-class JdbcTypes {
+trait JdbcTypes {
   val booleanJdbcType = new BooleanJdbcType
   val blobJdbcType = new BlobJdbcType
   val byteJdbcType = new ByteJdbcType

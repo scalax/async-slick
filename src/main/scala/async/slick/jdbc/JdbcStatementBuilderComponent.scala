@@ -1,24 +1,21 @@
 package slick.async.jdbc
 
 import scala.language.existentials
-import scala.collection.mutable.HashMap
 import slick.SlickException
 import slick.ast._
 import slick.ast.Util.nodeToNodeOps
-import slick.ast.TypeUtil._
-import slick.async.jdbc.config.CommonCapabilities
-import slick.compiler.{ CodeGen, CompilerState, QueryCompiler, RewriteBooleans }
+import slick.async.jdbc.config.JdbcComponentCapabilities
+import slick.compiler.{ CodeGen, CompilerState, QueryCompiler }
 import slick.lifted._
-import slick.relational.{ CompiledMapping, RelationalCapabilities, ResultConverter }
+import slick.relational.{ CompiledMapping, ResultConverter }
 import slick.async.relational.RelationalProfile
 import slick.async.sql.SqlProfile
 import slick.util._
-import slick.util.MacroSupport.macroSupportInterpolation
 
 trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
   // Create the different builders -- these methods should be overridden by profiles as needed
-  def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
   def createInsertBuilder(node: Insert): InsertBuilder = new InsertBuilder(node)
   def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
@@ -93,7 +90,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   //TODO 目前为了剥离 QueryBuilder 未实现
   //val scalarFrom: Option[String] = None
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends slick.async.jdbc.QueryBuilder(tree, state)(commonCapabilities)
+  //class QueryBuilder(tree: Node, state: CompilerState) extends slick.async.jdbc.QueryBuilder(tree, state)
 
   /** Builder for SELECT and UPDATE statements. */
   /*class QueryBuilder(val tree: Node, val state: CompilerState) { queryBuilder =>

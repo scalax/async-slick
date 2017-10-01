@@ -118,9 +118,9 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new MySQLJdbcTypes {}
   override protected def computeQueryCompiler = super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -174,7 +174,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     }
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val supportsCast = false
     override protected val parenthesizeNestedRHSJoin = true
     override protected val quotedJdbcFns = Some(Nil)
@@ -230,7 +230,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     override protected def buildDeleteFrom(tableName: String): Unit = {
       b"delete $tableName from $tableName"
     }
-  }
+  }*/
 
   class UpsertBuilder(ins: Insert) extends super.UpsertBuilder(ins) {
     override def buildInsert: InsertBuilderResult = {
@@ -296,8 +296,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
       )
     }
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val stringJdbcType = new StringJdbcType {
       override def valueToSQLLiteral(value: String) = if (value eq null) "NULL" else {
         val sb = new StringBuilder
@@ -328,7 +327,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
       override def valueToSQLLiteral(value: UUID): String =
         "x'" + value.toString.replace("-", "") + "'"
     }
-  }
+  }*/
 }
 
 object MySQLProfile extends MySQLProfile {

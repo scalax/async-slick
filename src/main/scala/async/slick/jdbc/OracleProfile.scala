@@ -107,7 +107,7 @@ trait OracleProfile extends JdbcProfile {
       - Phase.fixRowNumberOrdering
       + Phase.rewriteBooleans + new RemoveSubqueryOrdering)
 
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -131,7 +131,7 @@ trait OracleProfile extends JdbcProfile {
   //TODO 目前为了剥离 QueryBuilder 未实现
   //override val scalarFrom = Some("sys.dual")
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val supportsTuples = false
     override protected val concatOperator = Some("||")
     override protected val hasPiFunction = false
@@ -155,7 +155,7 @@ trait OracleProfile extends JdbcProfile {
         b"\(dbms_lob.compare($l, $r) = 0\)"
       case _ => super.expr(c, skipParens)
     }
-  }
+  }*/
 
   class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
     override val createPhase1 = super.createPhase1 ++ createAutoIncSequences

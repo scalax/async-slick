@@ -138,7 +138,7 @@ trait PostgresProfile extends JdbcProfile {
 
   override val columnTypes = new JdbcTypes
   override protected def computeQueryCompiler = super.computeQueryCompiler - Phase.rewriteDistinct
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -157,7 +157,7 @@ trait PostgresProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")
     override protected val quotedJdbcFns = Some(Vector(Library.Database, Library.User))
 
@@ -192,7 +192,7 @@ trait PostgresProfile extends JdbcProfile {
       case Library.CurrentTime() => b"current_time"
       case _ => super.expr(n, skipParens)
     }
-  }
+  }*/
 
   class UpsertBuilder(ins: Insert) extends super.UpsertBuilder(ins) {
     override def buildInsert: InsertBuilderResult = {

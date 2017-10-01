@@ -78,8 +78,8 @@ trait SQLServerProfile extends JdbcProfile {
       + Phase.rewriteBooleans)
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
-  override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override val columnTypes = new SQLServerJdbcTypes {}
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLServerQueryBuilder(n, state)
   override def createInsertBuilder(node: Insert): super.InsertBuilder = new InsertBuilder(node)
   override def createUpsertBuilder(node: Insert): super.InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -140,61 +140,6 @@ trait SQLServerProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
-    override protected val supportsTuples = false
-    override protected val concatOperator = Some("+")
-
-    override protected def buildSelectModifiers(c: Comprehension) {
-      super.buildSelectModifiers(c)
-      (c.fetch, c.offset) match {
-        case (Some(t), Some(d)) => b"top (${QueryParameter.constOp[Long]("+")(_ + _)(t, d)}) "
-        case (Some(t), None) => b"top ($t) "
-        case (None, _) => if (!c.orderBy.isEmpty) b"top 100 percent "
-      }
-    }
-
-    override protected def buildFetchOffsetClause(fetch: Option[Node], offset: Option[Node]) = ()
-
-    override protected def buildOrdering(n: Node, o: Ordering) {
-      if (o.nulls.last && !o.direction.desc)
-        b"case when ($n) is null then 1 else 0 end,"
-      else if (o.nulls.first && o.direction.desc)
-        b"case when ($n) is null then 0 else 1 end,"
-      expr(n)
-      if (o.direction.desc) b" desc"
-    }
-
-    override protected def buildFromClause(from: Seq[(TermSymbol, Node)]) = {
-      super.buildFromClause(from)
-      tree match {
-        // SQL Server "select for update" syntax
-        case c: Comprehension => if (c.forUpdate) b" with (updlock,rowlock) "
-        case _ =>
-      }
-    }
-
-    override protected def buildForUpdateClause(forUpdate: Boolean) = {
-      // SQLSever doesn't have "select for update" syntax, so use with (updlock,rowlock) in from clause
-    }
-
-    override def expr(n: Node, skipParens: Boolean = false): Unit = n match {
-      // Cast bind variables of type TIME to TIME (otherwise they're treated as TIMESTAMP)
-      case c @ LiteralNode(v) if c.volatileHint && JdbcTypeHelper.jdbcTypeFor(c.nodeType) == columnTypes.timeJdbcType =>
-        b"cast("
-        super.expr(n, skipParens)
-        b" as ${columnTypes.timeJdbcType.sqlTypeName(None)})"
-      case QueryParameter(extractor, tpe, _) if JdbcTypeHelper.jdbcTypeFor(tpe) == columnTypes.timeJdbcType =>
-        b"cast("
-        super.expr(n, skipParens)
-        b" as ${columnTypes.timeJdbcType.sqlTypeName(None)})"
-      case Library.Substring(n, start) =>
-        b"\({fn substring($n, ${QueryParameter.constOp[Int]("+")(_ + _)(start, LiteralNode(1).infer())}, ${Int.MaxValue})}\)"
-      case Library.Repeat(str, count) =>
-        b"replicate($str, $count)"
-      case n => super.expr(n, skipParens)
-    }
-  }
-
   class InsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
     override protected def emptyInsert: String = s"insert into $tableName default values"
   }
@@ -228,8 +173,7 @@ trait SQLServerProfile extends JdbcProfile {
       if (unique) sb append " UNIQUE"
     }
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val byteJdbcType = new ByteJdbcType
     override val byteArrayJdbcType = new ByteArrayJdbcType
@@ -295,7 +239,7 @@ trait SQLServerProfile extends JdbcProfile {
         new String(a)
       }
     }
-  }
+  }*/
 }
 
 object SQLServerProfile extends SQLServerProfile

@@ -15,13 +15,6 @@ import slick.async.jdbc.config.CommonCapabilities
 
 import scala.collection.mutable.HashMap
 
-abstract class StatementPart
-case object SelectPart extends StatementPart
-case object FromPart extends StatementPart
-case object WherePart extends StatementPart
-case object HavingPart extends StatementPart
-case object OtherPart extends StatementPart
-
 class QueryBuilder(val tree: Node, val state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends SqlUtilsComponent { queryBuilder =>
 
   // Immutable config options (to be overridden by subclasses)

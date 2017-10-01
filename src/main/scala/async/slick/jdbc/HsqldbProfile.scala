@@ -57,7 +57,7 @@ trait HsqldbProfile extends JdbcProfile {
   override protected def computeQueryCompiler =
     super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
@@ -74,7 +74,7 @@ trait HsqldbProfile extends JdbcProfile {
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")
     override protected val alwaysAliasSubqueries = false
     override protected val supportsLiteralGroupBy = true
@@ -119,7 +119,7 @@ trait HsqldbProfile extends JdbcProfile {
       case (None, Some(d)) => b"\noffset $d"
       case _ =>
     }
-  }
+  }*/
 
   class JdbcTypes extends super.JdbcTypes {
     override val byteArrayJdbcType = new ByteArrayJdbcType {

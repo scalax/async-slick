@@ -55,7 +55,7 @@ trait DB2Profile extends JdbcProfile {
     (super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       + Phase.rewriteBooleans)
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -71,7 +71,7 @@ trait DB2Profile extends JdbcProfile {
   //TODO 目前为了剥离 QueryBuilder 未实现
   //override val scalarFrom = Some("sysibm.sysdummy1")
 
-  class QueryBuilder(tree: Node, state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends super.QueryBuilder(tree, state)(commonCapabilities) {
+  /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
 
     override protected val hasPiFunction = false
     override protected val hasRadDegConversion = false
@@ -115,7 +115,7 @@ trait DB2Profile extends JdbcProfile {
         b" with RS "
       }
     }
-  }
+  }*/
 
   class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
