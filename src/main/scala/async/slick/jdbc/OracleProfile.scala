@@ -15,6 +15,7 @@ import slick.lifted._
 import slick.model.ForeignKeyAction
 import slick.relational.ResultConverter
 import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
+import slick.async.sql.FixedSqlAction
 
 /**
  * Slick profile for Oracle.
@@ -357,11 +358,11 @@ trait OracleProfile extends JdbcProfile { self =>
   override def createSchemaActionExtensionMethods(schema: DDL): SchemaActionExtensionMethods =
     new SchemaActionExtensionMethodsImpl(schema)
   class SchemaActionExtensionMethodsImpl(schema: DDL) extends super.SchemaActionExtensionMethodsImpl(schema) {
-    override def create: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
+    override def create: FixedSqlAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withStatement()(_.execute(s))
     }
-    override def drop: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.drop", schema.dropStatements.toVector) {
+    override def drop: FixedSqlAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.drop", schema.dropStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withStatement()(_.execute(s))
     }

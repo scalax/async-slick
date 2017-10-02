@@ -10,7 +10,7 @@ import slick.relational._
 import slick.async.basic.BasicProfile
 import slick.async.jdbc.DDL
 import slick.async.jdbc.config.{ ProfileTable, RelationalColumnOptions, RelationalQueryCompiler }
-import slick.async.sql.SqlProfile
+import slick.async.sql.{ FixedSqlAction, SqlProfile }
 
 import scala.language.{ higherKinds, implicitConversions }
 import scala.reflect.ClassTag
@@ -254,10 +254,10 @@ trait RelationalActionComponent extends BasicActionComponent { self: RelationalP
     type MultiInsertResult
 
     /** An Action that inserts a single value. */
-    def +=(value: T): ProfileAction[SingleInsertResult, NoStream, Effect.Write]
+    def +=(value: T): FixedSqlAction[SingleInsertResult, NoStream, Effect.Write]
 
     /** An Action that inserts a collection of values. */
-    def ++=(values: Iterable[T]): ProfileAction[MultiInsertResult, NoStream, Effect.Write]
+    def ++=(values: Iterable[T]): FixedSqlAction[MultiInsertResult, NoStream, Effect.Write]
   }
 
   //////////////////////////////////////////////////////////// Schema Actions
@@ -268,12 +268,12 @@ trait RelationalActionComponent extends BasicActionComponent { self: RelationalP
 
   trait SchemaActionExtensionMethodsImpl {
     /** Create an Action that creates the entities described by this schema description. */
-    def create: ProfileAction[Unit, NoStream, Effect.Schema]
+    def create: FixedSqlAction[Unit, NoStream, Effect.Schema]
 
     /** Create an Action that drops the entities described by this schema description. */
-    def drop: ProfileAction[Unit, NoStream, Effect.Schema]
+    def drop: FixedSqlAction[Unit, NoStream, Effect.Schema]
 
     /** Create an Action that truncates entries described by this schema description */
-    def truncate: ProfileAction[Unit, NoStream, Effect.Schema]
+    def truncate: FixedSqlAction[Unit, NoStream, Effect.Schema]
   }
 }

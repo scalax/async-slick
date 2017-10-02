@@ -153,8 +153,8 @@ trait SqlTableComponent extends RelationalTableComponent { self: SqlProfile =>
 
 trait SqlActionComponent extends RelationalActionComponent { this: SqlProfile =>
 
-  type ProfileAction[+R, +S <: NoStream, -E <: Effect] <: SqlAction[R, S, E]
-  type StreamingProfileAction[+R, +T, -E <: Effect] <: SqlStreamingAction[R, T, E] with ProfileAction[R, Streaming[T], E]
+  //type ProfileAction[+R, +S <: NoStream, -E <: Effect] <: SqlAction[R, S, E]
+  //type StreamingProfileAction[+R, +T, -E <: Effect] <: SqlStreamingAction[R, T, E] with ProfileAction[R, Streaming[T], E]
 }
 
 trait SqlAction[+R, +S <: NoStream, -E <: Effect] extends BasicAction[R, S, E] {

@@ -12,7 +12,7 @@ import slick.async.dbio._
 import slick.ast._
 import slick.ast.Util._
 import slick.ast.TypeUtil.:@
-import slick.async.jdbc.config.BasicCapabilities
+import slick.async.jdbc.config.{ BasicCapabilities, QueryActionExtensionMethodsImpl, SimpleJdbcProfileAction, StreamingQueryActionExtensionMethodsImpl }
 import slick.lifted.{ CompiledStreamingExecutable, FlatShapeLevel, Query, Shape }
 import slick.relational.{ CompiledMapping, ResultConverter }
 import slick.util.{ DumpInfo, SQLBuilder, ignoreFollowOnError }
@@ -20,18 +20,17 @@ import slick.util.{ DumpInfo, SQLBuilder, ignoreFollowOnError }
 trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
 
   val capabilitiesContent: BasicCapabilities
+  //type ProfileAction[+R, +S <: NoStream, -E <: Effect] = FixedSqlAction[R, S, E]
+  //type StreamingProfileAction[+R, +T, -E <: Effect] = FixedSqlStreamingAction[R, T, E]
 
-  type ProfileAction[+R, +S <: NoStream, -E <: Effect] = FixedSqlAction[R, S, E]
-  type StreamingProfileAction[+R, +T, -E <: Effect] = FixedSqlStreamingAction[R, T, E]
-
-  abstract class SimpleJdbcProfileAction[+R](_name: String, val statements: Vector[String]) extends SynchronousDatabaseAction[R, NoStream, Backend, Effect] with ProfileAction[R, NoStream, Effect] { self =>
+  /*abstract class SimpleJdbcProfileAction[+R](_name: String, val statements: Vector[String]) extends SynchronousDatabaseAction[R, NoStream, Backend, Effect] with ProfileAction[R, NoStream, Effect] { self =>
     def run(ctx: Backend#Context, sql: Vector[String]): R
     final override def getDumpInfo = super.getDumpInfo.copy(name = _name)
     final def run(ctx: Backend#Context): R = run(ctx, statements)
     final def overrideStatements(_statements: Iterable[String]): ProfileAction[R, NoStream, Effect] = new SimpleJdbcProfileAction[R](_name, _statements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): R = self.run(ctx, statements)
     }
-  }
+  }*/
 
   protected object StartTransaction extends SynchronousDatabaseAction[Unit, NoStream, Backend, Effect] {
     def run(ctx: Backend#Context): Unit = {
@@ -132,15 +131,19 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
   //////////////////////////////////////////////////////////// Query Actions
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
-  type QueryActionExtensionMethods[R, S <: NoStream] = QueryActionExtensionMethodsImpl[R, S]
-  type StreamingQueryActionExtensionMethods[R, T] = StreamingQueryActionExtensionMethodsImpl[R, T]
+  //type QueryActionExtensionMethods[R, S <: NoStream] = QueryActionExtensionMethodsImpl[R, S]
+  //type StreamingQueryActionExtensionMethods[R, T] = StreamingQueryActionExtensionMethodsImpl[R, T]
 
-  def createQueryActionExtensionMethods[R, S <: NoStream](tree: Node, param: Any): QueryActionExtensionMethods[R, S] =
-    new QueryActionExtensionMethods[R, S](tree, param)
-  def createStreamingQueryActionExtensionMethods[R, T](tree: Node, param: Any): StreamingQueryActionExtensionMethods[R, T] =
-    new StreamingQueryActionExtensionMethods[R, T](tree, param)
+  /*def createQueryActionExtensionMethods[R, S <: NoStream](tree: Node, param: Any): QueryActionExtensionMethodsImpl[R, S] =
+    new QueryActionExtensionMethodsImpl[R, S](tree, param) {
+      override val jdbcInvokerComponent = self.jdbcInvokerComponent
+    }
+  def createStreamingQueryActionExtensionMethods[R, T](tree: Node, param: Any): StreamingQueryActionExtensionMethodsImpl[R, T] =
+    new StreamingQueryActionExtensionMethodsImpl[R, T](tree, param) {
+      override val jdbcInvokerComponent = self.jdbcInvokerComponent
+    }*/
 
-  class MutatingResultAction[T](rsm: ResultSetMapping, elemType: Type, collectionType: CollectionType, sql: String, param: Any, sendEndMarker: Boolean) extends SynchronousDatabaseAction[Nothing, Streaming[ResultSetMutator[T]], Backend, Effect] with ProfileAction[Nothing, Streaming[ResultSetMutator[T]], Effect] { streamingAction =>
+  /*class MutatingResultAction[T](rsm: ResultSetMapping, elemType: Type, collectionType: CollectionType, sql: String, param: Any, sendEndMarker: Boolean) extends SynchronousDatabaseAction[Nothing, Streaming[ResultSetMutator[T]], Backend, Effect] with ProfileAction[Nothing, Streaming[ResultSetMutator[T]], Effect] { streamingAction =>
     class Mutator(val prit: PositionedResultIterator[T], val bufferNext: Boolean, val inv: QueryInvokerImpl[T]) extends ResultSetMutator[T] {
       val pr = prit.pr
       val rs = pr.rs
@@ -164,7 +167,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
       def delete: Unit = {
         if (state > 0) throw new SlickException("After end of result set")
         rs.deleteRow()
-        if (invokerPreviousAfterDelete) rs.previous()
+        if (jdbcInvokerComponent.invokerPreviousAfterDelete) rs.previous()
       }
       def emitStream(ctx: Backend#StreamingContext, limit: Long): this.type = {
         var count = 0L
@@ -197,9 +200,9 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
       throw new SlickException("The result of .mutate can only be used in a streaming way")
     override def emitStream(ctx: Backend#StreamingContext, limit: Long, state: StreamState): StreamState = {
       val mu = if (state ne null) state else {
-        val inv = createQueryInvoker[T](rsm, param, sql)
+        val inv = jdbcInvokerComponent.createQueryInvoker[T](rsm, param, sql)
         new Mutator(
-          inv.results(0, defaultConcurrency = invokerMutateConcurrency, defaultType = invokerMutateType)(ctx.session).right.get,
+          inv.results(0, defaultConcurrency = jdbcInvokerComponent.invokerMutateConcurrency, defaultType = jdbcInvokerComponent.invokerMutateType)(ctx.session).right.get,
           ctx.bufferNext,
           inv
         )
@@ -210,9 +213,9 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
     override def getDumpInfo = super.getDumpInfo.copy(name = "mutate")
     def overrideStatements(_statements: Iterable[String]): MutatingResultAction[T] =
       new MutatingResultAction[T](rsm, elemType, collectionType, _statements.head, param, sendEndMarker)
-  }
+  }*/
 
-  class QueryActionExtensionMethodsImpl[R, S <: NoStream](tree: Node, param: Any) extends super.QueryActionExtensionMethodsImpl[R, S] {
+  /*class QueryActionExtensionMethodsImpl[R, S <: NoStream](tree: Node, param: Any) extends super.QueryActionExtensionMethodsImpl[R, S] {
     def result: ProfileAction[R, S, Effect.Read] = {
       def findSql(n: Node): String = n match {
         case c: CompiledStatement => c.extra.asInstanceOf[SQLBuilder.Result].sql
@@ -223,7 +226,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
         case (rsm @ ResultSetMapping(_, compiled, CompiledMapping(_, elemType))) :@ (ct: CollectionType) =>
           val sql = findSql(compiled)
           new StreamingInvokerAction[R, Any, Effect] { streamingAction =>
-            protected[this] def createInvoker(sql: Iterable[String]) = createQueryInvoker(rsm, param, sql.head)
+            protected[this] def createInvoker(sql: Iterable[String]) = jdbcInvokerComponent.createQueryInvoker(rsm, param, sql.head)
             protected[this] def createBuilder = ct.cons.createBuilder(ct.elementType.classTag).asInstanceOf[Builder[Any, R]]
             def statements = List(sql)
             override def getDumpInfo = super.getDumpInfo.copy(name = "result")
@@ -232,13 +235,13 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
           val sql = findSql(compiled)
           new SimpleJdbcProfileAction[R]("result", Vector(sql)) {
             def run(ctx: Backend#Context, sql: Vector[String]): R =
-              createQueryInvoker[R](rsm, param, sql.head).first(ctx.session)
+              jdbcInvokerComponent.createQueryInvoker[R](rsm, param, sql.head).first(ctx.session)
           }
       }).asInstanceOf[ProfileAction[R, S, Effect.Read]]
     }
-  }
+  }*/
 
-  class StreamingQueryActionExtensionMethodsImpl[R, T](tree: Node, param: Any) extends QueryActionExtensionMethodsImpl[R, Streaming[T]](tree, param) with super.StreamingQueryActionExtensionMethodsImpl[R, T] {
+  /*class StreamingQueryActionExtensionMethodsImpl[R, T](tree: Node, param: Any) extends QueryActionExtensionMethodsImpl[R, Streaming[T]](tree, param) with super.StreamingQueryActionExtensionMethodsImpl[R, T] {
     override def result: StreamingProfileAction[R, T, Effect.Read] = super.result.asInstanceOf[StreamingProfileAction[R, T, Effect.Read]]
 
     /** Same as `mutate(sendEndMarker = false)`. */
@@ -261,13 +264,13 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
       val (rsm @ ResultSetMapping(_, _, CompiledMapping(_, elemType))) :@ (ct: CollectionType) = tree
       new MutatingResultAction[T](rsm, elemType, ct, sql, param, sendEndMarker)
     }
-  }
+  }*/
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////// Delete Actions
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
-  type DeleteActionExtensionMethods = DeleteActionExtensionMethodsImpl
+  /*type DeleteActionExtensionMethods = DeleteActionExtensionMethodsImpl
 
   def createDeleteActionExtensionMethods(tree: Node, param: Any): DeleteActionExtensionMethods =
     new DeleteActionExtensionMethods(tree, param)
@@ -283,7 +286,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
         }
       }
     }
-  }
+  }*/
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////// Schema Actions
@@ -295,17 +298,17 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
     new SchemaActionExtensionMethodsImpl(schema)
 
   class SchemaActionExtensionMethodsImpl(schema: DDL) extends super.SchemaActionExtensionMethodsImpl {
-    def create: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
+    def create: FixedSqlAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withPreparedStatement(s)(_.execute)
     }
 
-    def truncate: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.truncate", schema.truncateStatements.toVector) {
+    def truncate: FixedSqlAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.truncate", schema.truncateStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withPreparedStatement(s)(_.execute)
     }
 
-    def drop: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.drop", schema.dropStatements.toVector) {
+    def drop: FixedSqlAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.drop", schema.dropStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withPreparedStatement(s)(_.execute)
     }
@@ -315,7 +318,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
   //////////////////////////////////////////////////////////// Update Actions
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
-  type UpdateActionExtensionMethods[T] = UpdateActionExtensionMethodsImpl[T]
+  /*type UpdateActionExtensionMethods[T] = UpdateActionExtensionMethodsImpl[T]
 
   def createUpdateActionExtensionMethods[T](tree: Node, param: Any): UpdateActionExtensionMethods[T] =
     new UpdateActionExtensionMethodsImpl[T](tree, param)
@@ -339,7 +342,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
     }
     /** Get the statement usd by `update` */
     def updateStatement: String = sres.sql
-  }
+  }*/
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////// Insert Actions
@@ -371,14 +374,14 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
     def forceInsertStatement: String
 
     /** Insert a single row, skipping AutoInc columns. */
-    def +=(value: U): ProfileAction[SingleInsertResult, NoStream, Effect.Write]
+    def +=(value: U): FixedSqlAction[SingleInsertResult, NoStream, Effect.Write]
 
     /**
      * Insert a single row, including AutoInc columns. This is not supported
      * by all database engines (see
      * [[slick.jdbc.JdbcCapabilities.forceInsert]]).
      */
-    def forceInsert(value: U): ProfileAction[SingleInsertResult, NoStream, Effect.Write]
+    def forceInsert(value: U): FixedSqlAction[SingleInsertResult, NoStream, Effect.Write]
 
     /**
      * Insert multiple rows, skipping AutoInc columns.
@@ -387,7 +390,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
      * count for some part of the batch. If any part of the batch fails, an
      * exception is thrown.
      */
-    def ++=(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write]
+    def ++=(values: Iterable[U]): FixedSqlAction[MultiInsertResult, NoStream, Effect.Write]
 
     /**
      * Insert multiple rows, including AutoInc columns.
@@ -398,13 +401,13 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
      * count for some part of the batch. If any part of the batch fails, an
      * exception is thrown.
      */
-    def forceInsertAll(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write]
+    def forceInsertAll(values: Iterable[U]): FixedSqlAction[MultiInsertResult, NoStream, Effect.Write]
 
     /**
      * Insert a single row if its primary key does not exist in the table,
      * otherwise update the existing record.
      */
-    def insertOrUpdate(value: U): ProfileAction[SingleInsertOrUpdateResult, NoStream, Effect.Write]
+    def insertOrUpdate(value: U): FixedSqlAction[SingleInsertOrUpdateResult, NoStream, Effect.Write]
   }
 
   /** Extension methods to generate the JDBC-specific insert actions. */
@@ -422,13 +425,13 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
     def forceInsertStatementFor[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]): String
 
     /** Insert a single row from a scalar expression */
-    def forceInsertExpr[TT](c: TT)(implicit shape: Shape[_ <: FlatShapeLevel, TT, U, _]): ProfileAction[QueryInsertResult, NoStream, Effect.Write]
+    def forceInsertExpr[TT](c: TT)(implicit shape: Shape[_ <: FlatShapeLevel, TT, U, _]): FixedSqlAction[QueryInsertResult, NoStream, Effect.Write]
 
     /** Insert data produced by another query */
-    def forceInsertQuery[TT, C[_]](query: Query[TT, U, C]): ProfileAction[QueryInsertResult, NoStream, Effect.Write]
+    def forceInsertQuery[TT, C[_]](query: Query[TT, U, C]): FixedSqlAction[QueryInsertResult, NoStream, Effect.Write]
 
     /** Insert data produced by another query */
-    def forceInsertQuery[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]): ProfileAction[QueryInsertResult, NoStream, Effect.Write]
+    def forceInsertQuery[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]): FixedSqlAction[QueryInsertResult, NoStream, Effect.Write]
   }
 
   /** An InsertInvoker that returns the number of affected rows. */
@@ -473,19 +476,19 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
 
     def forceInsertStatement = compiled.forceInsert.sql
 
-    def +=(value: U): ProfileAction[SingleInsertResult, NoStream, Effect.Write] =
+    def +=(value: U): FixedSqlAction[SingleInsertResult, NoStream, Effect.Write] =
       new SingleInsertAction(compiled.standardInsert, value)
 
-    def forceInsert(value: U): ProfileAction[SingleInsertResult, NoStream, Effect.Write] =
+    def forceInsert(value: U): FixedSqlAction[SingleInsertResult, NoStream, Effect.Write] =
       new SingleInsertAction(compiled.forceInsert, value)
 
-    def ++=(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write] =
+    def ++=(values: Iterable[U]): FixedSqlAction[MultiInsertResult, NoStream, Effect.Write] =
       new MultiInsertAction(compiled.standardInsert, values)
 
-    def forceInsertAll(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write] =
+    def forceInsertAll(values: Iterable[U]): FixedSqlAction[MultiInsertResult, NoStream, Effect.Write] =
       new MultiInsertAction(compiled.forceInsert, values)
 
-    def insertOrUpdate(value: U): ProfileAction[SingleInsertOrUpdateResult, NoStream, Effect.Write] =
+    def insertOrUpdate(value: U): FixedSqlAction[SingleInsertOrUpdateResult, NoStream, Effect.Write] =
       new InsertOrUpdateAction(value)
 
     def forceInsertStatementFor[TT](c: TT)(implicit shape: Shape[_ <: FlatShapeLevel, TT, U, _]) =
@@ -497,13 +500,13 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
     def forceInsertStatementFor[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]) =
       buildQueryBasedInsert(compiledQuery).sql
 
-    def forceInsertExpr[TT](c: TT)(implicit shape: Shape[_ <: FlatShapeLevel, TT, U, _]): ProfileAction[QueryInsertResult, NoStream, Effect.Write] =
+    def forceInsertExpr[TT](c: TT)(implicit shape: Shape[_ <: FlatShapeLevel, TT, U, _]): FixedSqlAction[QueryInsertResult, NoStream, Effect.Write] =
       new InsertQueryAction(buildQueryBasedInsert((Query(c)(shape))), null)
 
-    def forceInsertQuery[TT, C[_]](query: Query[TT, U, C]): ProfileAction[QueryInsertResult, NoStream, Effect.Write] =
+    def forceInsertQuery[TT, C[_]](query: Query[TT, U, C]): FixedSqlAction[QueryInsertResult, NoStream, Effect.Write] =
       new InsertQueryAction(buildQueryBasedInsert(query), null)
 
-    def forceInsertQuery[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]): ProfileAction[QueryInsertResult, NoStream, Effect.Write] =
+    def forceInsertQuery[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]): FixedSqlAction[QueryInsertResult, NoStream, Effect.Write] =
       new InsertQueryAction(buildQueryBasedInsert(compiledQuery), compiledQuery.param)
 
     protected def useServerSideUpsert = self.useServerSideUpsert

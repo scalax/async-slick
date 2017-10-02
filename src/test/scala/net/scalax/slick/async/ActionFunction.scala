@@ -1,7 +1,8 @@
 package net.scalax.slick.async
 
 import slick.async.dbio._
-import slick.async.jdbc.{ JdbcBackend, JdbcProfile }
+import slick.async.jdbc.config.UpdateActionExtensionContent
+import slick.async.jdbc.{ JdbcBackend, JdbcProfile, QueryInvokerImpl }
 import slick.lifted.Query
 
 import scala.language.higherKinds
@@ -83,7 +84,7 @@ object ActionFunctionHelper {
       "slick.query.result" -> new QueryRoute[SessionConn] {
         def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): SessionConn[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, Nothing]]
-          val invoker = new jdbcProfile.QueryInvokerImpl(jdbcProfile.crudCompiler.queryCompiler.run(wrap.query.toNode).tree, null, null)
+          val invoker = new QueryInvokerImpl(jdbcProfile.crudCompiler.queryCompiler.run(wrap.query.toNode).tree, null, null)
           new SessionConn[F, G] {
             override def withSession(implicit session: JdbcBackend#Session): F = {
               invoker.results(0)(session).right.get.toList.asInstanceOf[F]
@@ -104,7 +105,7 @@ object ActionFunctionHelper {
 
           new SessionConn[F, NoStream] {
             override def withSession(implicit session: JdbcBackend#Session): F = {
-              jdbcProfile.createUpdateActionExtensionMethods(tree, null).update(wrap.data)
+              UpdateActionExtensionContent.createUpdateActionExtensionMethods(tree, null).update(wrap.data)
                 .asInstanceOf[SynchronousDatabaseAction[Int, NoStream, JdbcBackend, Effect]].run(new BlockingJdbcActionContext(session))
                 .asInstanceOf[F]
             }

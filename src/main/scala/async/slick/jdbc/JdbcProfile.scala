@@ -4,8 +4,7 @@ import scala.collection.mutable.Builder
 import scala.language.{ higherKinds, implicitConversions }
 import slick.ast._
 import slick.ast.TypeUtil.:@
-import slick.async.jdbc.config.BasicCapabilities
-import slick.compiler.{ InsertCompiler, Phase, QueryCompiler }
+import slick.async.jdbc.config._
 import slick.lifted._
 import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.relational.CompiledMapping
@@ -13,8 +12,8 @@ import slick.async.sql.SqlProfile
 
 /** Abstract profile for accessing SQL databases via JDBC. */
 trait JdbcProfile extends SqlProfile with JdbcActionComponent
-    with JdbcInvokerComponent with JdbcTypesComponent with JdbcModelComponent
-    /* internal: */ with JdbcStatementBuilderComponent with JdbcMappingCompilerComponent {
+    /*with JdbcInvokerComponent*/ with JdbcTypesComponent with JdbcModelComponent
+    /* internal: */ with JdbcStatementBuilderComponent /*with JdbcMappingCompilerComponent*/ {
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   //override val profile: JdbcProfile = this
@@ -46,20 +45,20 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
 
   trait LowPriorityAPI {
     implicit def queryUpdateActionExtensionMethods[U, C[_]](q: Query[_, U, C]): UpdateActionExtensionMethodsImpl[U] =
-      createUpdateActionExtensionMethods(crudCompiler.updateCompiler.run(q.toNode).tree, ())
+      UpdateActionExtensionContent.createUpdateActionExtensionMethods(crudCompiler.updateCompiler.run(q.toNode).tree, ())
   }
 
   trait API extends LowPriorityAPI with super.API with ImplicitColumnTypes {
     type SimpleDBIO[+R] = SimpleJdbcAction[R]
     val SimpleDBIO = SimpleJdbcAction
 
-    implicit def queryDeleteActionExtensionMethods[C[_]](q: Query[_ <: RelationalProfile#Table[_], _, C]): DeleteActionExtensionMethods =
-      createDeleteActionExtensionMethods(crudCompiler.deleteCompiler.run(q.toNode).tree, ())
-    implicit def runnableCompiledDeleteActionExtensionMethods[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): DeleteActionExtensionMethods =
-      createDeleteActionExtensionMethods(c.compiledDelete, c.param)
+    implicit def queryDeleteActionExtensionMethods[C[_]](q: Query[_ <: RelationalProfile#Table[_], _, C]): DeleteActionExtensionMethodsImpl =
+      DeleteActionExtensionContent.createDeleteActionExtensionMethods(crudCompiler.deleteCompiler.run(q.toNode).tree, ())
+    implicit def runnableCompiledDeleteActionExtensionMethods[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): DeleteActionExtensionMethodsImpl =
+      DeleteActionExtensionContent.createDeleteActionExtensionMethods(c.compiledDelete, c.param)
 
-    implicit def runnableCompiledUpdateActionExtensionMethods[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): UpdateActionExtensionMethods[RU] =
-      createUpdateActionExtensionMethods(c.compiledUpdate, c.param)
+    implicit def runnableCompiledUpdateActionExtensionMethods[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): UpdateActionExtensionMethodsImpl[RU] =
+      UpdateActionExtensionContent.createUpdateActionExtensionMethods(c.compiledUpdate, c.param)
 
     implicit def jdbcActionExtensionMethods[E <: Effect, R, S <: NoStream](a: DBIOAction[R, S, E]): JdbcActionExtensionMethods[E, R, S] =
       new JdbcActionExtensionMethods[E, R, S](a)
@@ -72,9 +71,9 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   def runSynchronousQuery[R](tree: Node, param: Any)(implicit session: Backend#Session): R = tree match {
     case rsm @ ResultSetMapping(_, _, CompiledMapping(_, elemType)) :@ CollectionType(cons, el) =>
       val b = cons.createBuilder(el.classTag).asInstanceOf[Builder[Any, R]]
-      createQueryInvoker[Any](rsm, param, null).foreach({ x => b += x }, 0)(session)
+      jdbcInvokerComponent.createQueryInvoker[Any](rsm, param, null).foreach({ x => b += x }, 0)(session)
       b.result()
     case First(rsm: ResultSetMapping) =>
-      createQueryInvoker[R](rsm, param, null).first
+      jdbcInvokerComponent.createQueryInvoker[R](rsm, param, null).first
   }
 }

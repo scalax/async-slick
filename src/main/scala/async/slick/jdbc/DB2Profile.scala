@@ -50,7 +50,8 @@ trait DB2Profile extends JdbcProfile { self =>
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
-  override protected val invokerMutateType: ResultSetType = ResultSetType.ScrollSensitive
+  //override protected val invokerMutateType: ResultSetType = ResultSetType.ScrollSensitive
+  override val jdbcInvokerComponent: JdbcInvokerComponent = new DB2InvokerComponent {}
 
   override lazy val capabilitiesContent: BasicCapabilities = new DB2Capabilities {}
 
