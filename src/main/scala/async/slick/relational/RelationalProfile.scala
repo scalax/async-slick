@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
  * It requires a relational table structure as its basic model of data.
  */
 trait RelationalProfile extends BasicProfile with RelationalTableComponent
-    with RelationalSequenceComponent with RelationalTypesComponent
+    with RelationalSequenceComponent/*with RelationalTypesComponent*/
     with RelationalActionComponent { self: RelationalProfile =>
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
@@ -202,8 +202,7 @@ trait RelationalSequenceComponent { self: RelationalProfile =>
     def apply[T: TypedType: Integral](name: String) = new Sequence[T](name, None, None, None, None, false)
   }
 }
-
-trait RelationalTypesComponent { self: RelationalProfile =>
+//trait RelationalTypesComponent { self: RelationalProfile =>
   //type ColumnType[T] <: TypedType[T]
   //type BaseColumnType[T] <: ColumnType[T] with BaseTypedType[T]
 
@@ -231,8 +230,7 @@ trait RelationalTypesComponent { self: RelationalProfile =>
     implicit def shortColumnType: BaseColumnType[Short] with NumericTypedType
     implicit def stringColumnType: BaseColumnType[String]
   }*/
-}
-
+//}
 trait RelationalActionComponent extends BasicActionComponent { self: RelationalProfile =>
 
   //////////////////////////////////////////////////////////// Insert Actions
