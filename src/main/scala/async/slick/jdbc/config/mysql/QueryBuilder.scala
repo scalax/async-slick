@@ -7,7 +7,7 @@ import slick.async.jdbc.config.MysqlCapabilities
 import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 
-class MysqlQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new MysqlCapabilities {}) {
+abstract class MysqlQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new MysqlCapabilities {})*/ {
 
   val columnTypes = new MySQLJdbcTypes {}
 

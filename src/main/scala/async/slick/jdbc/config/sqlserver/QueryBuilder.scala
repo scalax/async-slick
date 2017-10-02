@@ -5,7 +5,7 @@ import slick.async.jdbc.config.SQLServerCapabilities
 import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 
-class SQLServerQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new SQLServerCapabilities {}) {
+abstract class SQLServerQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new SQLServerCapabilities {})*/ {
   val columnTypes = new SQLServerJdbcTypes {}
 
   override protected val supportsTuples = false

@@ -38,7 +38,7 @@ import slick.async.jdbc.meta.{ MColumn, MTable }
  *     is performmed natively on the server side.</li>
  * </ul>
  */
-trait H2Profile extends JdbcProfile {
+trait H2Profile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - SqlCapabilities.sequenceMin
@@ -48,6 +48,8 @@ trait H2Profile extends JdbcProfile {
     - RelationalCapabilities.joinFull
     - JdbcCapabilities.insertOrUpdate
     - RelationalCapabilities.reverse)*/
+
+  override lazy val capabilitiesContent: CommonCapabilities = new H2Capabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -75,7 +77,9 @@ trait H2Profile extends JdbcProfile {
   override val columnTypes = new JdbcTypes
   override protected def computeQueryCompiler = new H2QueryCompiler {}.computeQueryCompiler
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =

@@ -72,7 +72,7 @@ import slick.util.MacroSupport.macroSupportInterpolation
  *     >https://db.apache.org/derby/docs/10.10/ref/rrefsqlj29026.html</a></li>
  * </ul>
  */
-trait DerbyProfile extends JdbcProfile {
+trait DerbyProfile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.functionDatabase
@@ -90,6 +90,8 @@ trait DerbyProfile extends JdbcProfile {
     - JdbcCapabilities.supportsByte
     - RelationalCapabilities.repeat)*/
 
+  override lazy val capabilitiesContent: CommonCapabilities = new DerbyCapabilities {}
+
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
       override def schema = super.schema.filter(_ != "APP") // remove default schema
@@ -105,7 +107,9 @@ trait DerbyProfile extends JdbcProfile {
   override protected def computeQueryCompiler = new DerbyQueryCompiler {}.computeQueryCompiler
   //super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
   override val columnTypes = new DerbyJdbcTypes {}
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)

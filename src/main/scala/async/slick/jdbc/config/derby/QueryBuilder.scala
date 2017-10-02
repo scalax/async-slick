@@ -7,7 +7,7 @@ import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.async.jdbc.config.{ DB2Capabilities, DerbyCapabilities }
 
-class DerbyQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new DerbyCapabilities {}) {
+abstract class DerbyQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new DerbyCapabilities {})*/ {
   //TODO 看有没有可能省略
   val columnTypes = new DerbyJdbcTypes {}
 

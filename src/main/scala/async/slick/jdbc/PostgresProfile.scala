@@ -48,12 +48,14 @@ import slick.util.MacroSupport.macroSupportInterpolation
  *   extension in PostgreSQL.</li>
  * </ul>
  */
-trait PostgresProfile extends JdbcProfile {
+trait PostgresProfile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - JdbcCapabilities.insertOrUpdate
     - JdbcCapabilities.nullableNoDefault
     - JdbcCapabilities.supportsByte)*/
+
+  override lazy val capabilitiesContent: CommonCapabilities = new PostgresCapabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -139,7 +141,9 @@ trait PostgresProfile extends JdbcProfile {
   override val columnTypes = new JdbcTypes
   override protected def computeQueryCompiler = new PostgresQueryCompiler {}.computeQueryCompiler
   //super.computeQueryCompiler - Phase.rewriteDistinct
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)

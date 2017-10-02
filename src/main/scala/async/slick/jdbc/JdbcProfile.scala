@@ -1,11 +1,11 @@
 package slick.async.jdbc
 
 import scala.collection.mutable.Builder
-import scala.language.{ implicitConversions, higherKinds }
-
+import scala.language.{ higherKinds, implicitConversions }
 import slick.ast._
 import slick.ast.TypeUtil.:@
-import slick.compiler.{ Phase, QueryCompiler, InsertCompiler }
+import slick.async.jdbc.config.CommonCapabilities
+import slick.compiler.{ InsertCompiler, Phase, QueryCompiler }
 import slick.lifted._
 import slick.async.relational.RelationalProfile
 import slick.relational.CompiledMapping
@@ -27,6 +27,8 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   lazy val MappedColumnType = MappedJdbcType
 
   //override protected def computeCapabilities = super.computeCapabilities ++ JdbcCapabilities.all
+
+  val capabilitiesContent: CommonCapabilities
 
   lazy val queryCompiler = compiler + new JdbcCodeGen(_.buildSelect)
   lazy val updateCompiler = compiler + new JdbcCodeGen(_.buildUpdate)

@@ -6,7 +6,7 @@ import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.util.ConstArray
 
-class PostgresQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new PostgresCapabilities {}) {
+abstract class PostgresQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new PostgresCapabilities {})*/ {
   override protected val concatOperator = Some("||")
   override protected val quotedJdbcFns = Some(Vector(Library.Database, Library.User))
 

@@ -5,7 +5,7 @@ import slick.async.jdbc.config.H2Capabilities
 import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 
-class H2QueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new H2Capabilities {}) {
+abstract class H2QueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new H2Capabilities {})*/ {
   override protected val concatOperator = Some("||")
   override protected val alwaysAliasSubqueries = false
   override protected val supportsLiteralGroupBy = true

@@ -35,7 +35,7 @@ import slick.util.MacroSupport.macroSupportInterpolation
  *     natively on the server side.</li>
  * </ul>
  */
-trait HsqldbProfile extends JdbcProfile {
+trait HsqldbProfile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - SqlCapabilities.sequenceCurr
@@ -48,6 +48,8 @@ trait HsqldbProfile extends JdbcProfile {
     }
   }
 
+  override lazy val capabilitiesContent: CommonCapabilities = new HsqldbCapabilities {}
+
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
@@ -57,7 +59,9 @@ trait HsqldbProfile extends JdbcProfile {
   override protected def computeQueryCompiler = new HsqldbQueryCompiler {}.computeQueryCompiler
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 

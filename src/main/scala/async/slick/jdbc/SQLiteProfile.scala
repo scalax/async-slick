@@ -72,7 +72,7 @@ import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
  *     in the meta data.</li>
  * </ul>
  */
-trait SQLiteProfile extends JdbcProfile {
+trait SQLiteProfile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.functionDatabase
@@ -91,6 +91,8 @@ trait SQLiteProfile extends JdbcProfile {
     - JdbcCapabilities.supportsByte
     - JdbcCapabilities.distinguishesIntTypes
     - JdbcCapabilities.forUpdate)*/
+
+  override lazy val capabilitiesContent: CommonCapabilities = new SQLiteCapabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {
@@ -153,7 +155,9 @@ trait SQLiteProfile extends JdbcProfile {
       .map(_.filter(_.name.name.toLowerCase != "sqlite_sequence"))
 
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLiteQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLiteQueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createUpsertBuilder(node: Insert): super.InsertBuilder = new UpsertBuilder(node)
   override def createInsertBuilder(node: Insert): super.InsertBuilder = new InsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)

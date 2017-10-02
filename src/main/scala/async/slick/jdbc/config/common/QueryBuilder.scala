@@ -15,7 +15,9 @@ import slick.async.jdbc.config.CommonCapabilities
 
 import scala.collection.mutable.HashMap
 
-class QueryBuilder(val tree: Node, val state: CompilerState)(implicit commonCapabilities: CommonCapabilities) extends SqlUtilsComponent { queryBuilder =>
+abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends SqlUtilsComponent { queryBuilder =>
+
+  val commonCapabilities: CommonCapabilities
 
   // Immutable config options (to be overridden by subclasses)
   protected val supportsTuples = true

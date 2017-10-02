@@ -53,13 +53,14 @@ import slick.util.ConfigExtensionMethods._
  * changed by overriding <code>slick.jdbc.SQLServerProfile.defaultStringType</code>
  * in application.conf.
  */
-trait SQLServerProfile extends JdbcProfile {
+trait SQLServerProfile extends JdbcProfile { self =>
 
   override protected[this] def loadProfileConfig: Config = {
     if (!GlobalConfig.profileConfig("slick.driver.SQLServer").entrySet().isEmpty)
       SlickLogger[SQLServerProfile].warn("The config key 'slick.driver.SQLServer' is deprecated and not used anymore. Use 'slick.jdbc.SQLServerProfile' instead.")
     super.loadProfileConfig
   }
+  override lazy val capabilitiesContent: CommonCapabilities = new SQLServerCapabilities {}
 
   protected lazy val defaultStringType = profileConfig.getStringOpt("defaultStringType")
 
@@ -79,7 +80,9 @@ trait SQLServerProfile extends JdbcProfile {
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
   override val columnTypes = new SQLServerJdbcTypes {}
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLServerQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLServerQueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createInsertBuilder(node: Insert): super.InsertBuilder = new InsertBuilder(node)
   override def createUpsertBuilder(node: Insert): super.InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)

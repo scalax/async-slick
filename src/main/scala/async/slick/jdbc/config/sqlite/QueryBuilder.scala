@@ -6,7 +6,7 @@ import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.async.jdbc.config.{ DB2Capabilities, SQLiteCapabilities }
 
-class SQLiteQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new SQLiteCapabilities {}) {
+abstract class SQLiteQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new SQLiteCapabilities {})*/ {
 
   override protected val supportsTuples = false
   override protected val concatOperator = Some("||")

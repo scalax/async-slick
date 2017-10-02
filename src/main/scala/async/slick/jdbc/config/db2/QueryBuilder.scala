@@ -5,7 +5,7 @@ import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.async.jdbc.config.DB2Capabilities
 
-class DB2QueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new DB2Capabilities {}) {
+abstract class DB2QueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new DB2Capabilities {})*/ {
 
   override protected val hasPiFunction = false
   override protected val hasRadDegConversion = false

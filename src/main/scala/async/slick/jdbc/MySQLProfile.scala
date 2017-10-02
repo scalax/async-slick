@@ -74,6 +74,8 @@ trait MySQLProfile extends JdbcProfile { profile =>
     super.loadProfileConfig
   }
 
+  override lazy val capabilitiesContent: CommonCapabilities = new MysqlCapabilities {}
+
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createPrimaryKeyBuilder(tableBuilder: TableBuilder, meta: Seq[MPrimaryKey]): PrimaryKeyBuilder = new PrimaryKeyBuilder(tableBuilder, meta) {
       // TODO: this needs a test
@@ -121,7 +123,9 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override val columnTypes = new MySQLJdbcTypes {}
   override protected def computeQueryCompiler = new MysqlQueryCompiler {}.computeQueryCompiler
   //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
+    override lazy val commonCapabilities = profile.capabilitiesContent
+  }
   override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)

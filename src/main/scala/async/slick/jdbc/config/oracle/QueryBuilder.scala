@@ -7,7 +7,7 @@ import slick.async.jdbc.config.OracleCapabilities
 import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 
-class OracleQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new OracleCapabilities {}) {
+abstract class OracleQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new OracleCapabilities {})*/ {
   override protected val supportsTuples = false
   override protected val concatOperator = Some("||")
   override protected val hasPiFunction = false

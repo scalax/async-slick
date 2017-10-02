@@ -39,7 +39,7 @@ import slick.util.MacroSupport.macroSupportInterpolation
  * reserved word), otherwise a bug in the DB2 JDBC driver triggers a SQL
  * Error -206 (SQLState 42703).
  */
-trait DB2Profile extends JdbcProfile {
+trait DB2Profile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.reverse
@@ -51,11 +51,15 @@ trait DB2Profile extends JdbcProfile {
   override protected lazy val useServerSideUpsertReturning = false
   override protected val invokerMutateType: ResultSetType = ResultSetType.ScrollSensitive
 
+  override lazy val capabilitiesContent: CommonCapabilities = new DB2Capabilities {}
+
   override protected def computeQueryCompiler = new DB2QueryCompiler {}.computeQueryCompiler
   /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       + Phase.rewriteBooleans)*/
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)

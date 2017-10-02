@@ -59,7 +59,7 @@ import slick.util.MacroSupport.macroSupportInterpolation
  * Updating Blob values in updatable result sets is not supported.
  */
 
-trait OracleProfile extends JdbcProfile {
+trait OracleProfile extends JdbcProfile { self =>
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
     - RelationalCapabilities.foreignKeyActions
@@ -70,6 +70,8 @@ trait OracleProfile extends JdbcProfile {
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
+
+  override lazy val capabilitiesContent: CommonCapabilities = new OracleCapabilities {}
 
   trait ColumnOptions extends super.ColumnOptions {
     def AutoIncSequenceName(name: String) = OracleProfile.ColumnOption.AutoIncSequenceName(name)
@@ -107,7 +109,9 @@ trait OracleProfile extends JdbcProfile {
       - Phase.fixRowNumberOrdering
       + Phase.rewriteBooleans + new RemoveSubqueryOrdering)*/
 
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state)
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state) {
+    override lazy val commonCapabilities = self.capabilitiesContent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)

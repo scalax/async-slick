@@ -9,7 +9,7 @@ import slick.compiler.CompilerState
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.util.ConstArray
 
-class HsqldbQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state)(new HsqldbCapabilities {}) {
+abstract class HsqldbQueryBuilder(tree: Node, state: CompilerState) extends QueryBuilder(tree, state) /*(new HsqldbCapabilities {})*/ {
   override protected val concatOperator = Some("||")
   override protected val alwaysAliasSubqueries = false
   override protected val supportsLiteralGroupBy = true
