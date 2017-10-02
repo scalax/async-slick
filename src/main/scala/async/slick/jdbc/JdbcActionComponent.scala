@@ -1,7 +1,6 @@
 package slick.async.jdbc
 
-import slick.async.sql.{ FixedSqlAction, FixedSqlStreamingAction }
-import slick.async.sql.SqlActionComponent
+import slick.async.sql.{ FixedSqlAction, FixedSqlStreamingAction, SqlActionComponent, SqlProfile }
 
 import scala.language.{ existentials, higherKinds }
 import java.sql.{ PreparedStatement, Statement }
@@ -292,10 +291,10 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
 
   type SchemaActionExtensionMethods = SchemaActionExtensionMethodsImpl
 
-  def createSchemaActionExtensionMethods(schema: SchemaDescription): SchemaActionExtensionMethods =
+  def createSchemaActionExtensionMethods(schema: SqlProfile#DDL): SchemaActionExtensionMethods =
     new SchemaActionExtensionMethodsImpl(schema)
 
-  class SchemaActionExtensionMethodsImpl(schema: SchemaDescription) extends super.SchemaActionExtensionMethodsImpl {
+  class SchemaActionExtensionMethodsImpl(schema: SqlProfile#DDL) extends super.SchemaActionExtensionMethodsImpl {
     def create: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withPreparedStatement(s)(_.execute)

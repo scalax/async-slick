@@ -1,13 +1,13 @@
 package slick.async.jdbc.config
 
 import slick.ast._
-import slick.async.jdbc.{InsertBuilderResult, JdbcTypeHelper, OracleProfile}
+import slick.async.jdbc.{ InsertBuilderResult, JdbcTypeHelper, OracleProfile }
 import slick.compiler._
-import slick.util.{ConstArray, SQLBuilder}
+import slick.util.{ ConstArray, SQLBuilder }
 import slick.ast.Util.nodeToNodeOps
 import slick.async.relational.RelationalProfile
 import slick.async.sql.SqlProfile
-import slick.lifted.{AbstractTable, RefTag, Rep, Tag}
+import slick.lifted.{ AbstractTable, RefTag, Rep, Tag }
 
 trait CrudCompiler { self =>
 
@@ -63,9 +63,9 @@ abstract class InsertBuilder(val ins: Insert) {
     else s"insert into $tableName (${sqlUtilsComponent.quoteIdentifier(allFields.head.name)}) values (default)"
 
   /**
-    * Reorder InsertColumn indices in a mapping Node in the order of the given
-    * sequence of FieldSymbols (which may contain duplicates).
-    */
+   * Reorder InsertColumn indices in a mapping Node in the order of the given
+   * sequence of FieldSymbols (which may contain duplicates).
+   */
   protected def reorderColumns(n: Node, order: IndexedSeq[FieldSymbol]): Node = {
     val newIndices = order.zipWithIndex.groupBy(_._1)
     lazy val reordering: ConstArray[IndexedSeq[Int]] = syms.map(fs => newIndices(fs).map(_._2 + 1))
@@ -121,12 +121,12 @@ abstract class ProfileTable[T](_tableTag: Tag, _schemaName: Option[String], _tab
 
   def tableIdentitySymbol: TableIdentitySymbol = SimpleTableIdentitySymbol(tableProvider, schemaName.getOrElse("_"), tableName)
 
-  val O: RelationalColumnOptions//: self.columnOptions.type = columnOptions
+  val O: RelationalColumnOptions //: self.columnOptions.type = columnOptions
 
   /**
-    * Note that Slick uses VARCHAR or VARCHAR(254) in DDL for String
-    * columns if neither ColumnOption DBType nor Length are given.
-    */
+   * Note that Slick uses VARCHAR or VARCHAR(254) in DDL for String
+   * columns if neither ColumnOption DBType nor Length are given.
+   */
   def column[C](n: String, options: ColumnOption[C]*)(implicit tt: TypedType[C]): Rep[C] = {
     if (tt == null) throw new NullPointerException(
       "implicit TypedType[C] for column[C] is null. " +

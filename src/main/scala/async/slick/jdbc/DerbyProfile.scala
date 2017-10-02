@@ -109,6 +109,7 @@ trait DerbyProfile extends JdbcProfile { self =>
   override val columnTypes = new DerbyJdbcTypes {}
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -185,8 +186,8 @@ trait DerbyProfile extends JdbcProfile { self =>
          * index) because Derby does not allow a FOREIGN KEY CONSTRAINT to
          * reference columns which have a UNIQUE INDEX but not a nominal UNIQUE
          * CONSTRAINT. */
-        val sb = new StringBuilder append "ALTER TABLE " append quoteIdentifier(table.tableName) append " ADD "
-        sb append "CONSTRAINT " append quoteIdentifier(idx.name) append " UNIQUE("
+        val sb = new StringBuilder append "ALTER TABLE " append sqlUtilsComponent.quoteIdentifier(table.tableName) append " ADD "
+        sb append "CONSTRAINT " append sqlUtilsComponent.quoteIdentifier(idx.name) append " UNIQUE("
         addIndexColumnList(idx.on, sb, idx.table.tableName)
         sb append ")"
         sb.toString
@@ -209,7 +210,7 @@ trait DerbyProfile extends JdbcProfile { self =>
       import seq.integral._
       val increment = seq._increment.getOrElse(one)
       val desc = increment < zero
-      val b = new StringBuilder append "CREATE SEQUENCE " append quoteIdentifier(seq.name)
+      val b = new StringBuilder append "CREATE SEQUENCE " append sqlUtilsComponent.quoteIdentifier(seq.name)
       /* Set the START value explicitly because it defaults to the data type's
        * min/max value instead of the more conventional 1/-1. */
       b append " START WITH " append seq._start.getOrElse(if (desc) -1 else 1)
@@ -220,7 +221,7 @@ trait DerbyProfile extends JdbcProfile { self =>
        * cycles back to the START value instead of MINVALUE or MAXVALUE. No good
        * workaround available AFAICT. */
       if (seq._cycle) b append " CYCLE"
-      DDL(b.toString, "DROP SEQUENCE " + quoteIdentifier(seq.name))
+      DDL(b.toString, "DROP SEQUENCE " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
   }
   /*class JdbcTypes extends super.JdbcTypes {

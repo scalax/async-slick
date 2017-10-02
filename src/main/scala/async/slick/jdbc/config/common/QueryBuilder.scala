@@ -3,21 +3,21 @@ package slick.async.jdbc
 import slick.SlickException
 import slick.ast.TypeUtil.:@
 import slick.ast.{ Apply, Comprehension, ElementSymbol, IfThenElse, Join, JoinType, Library, LiteralNode, Node, OptionApply, Ordering, Path, ProductNode, Pure, QueryParameter, Ref, RowNumber, ScalaBaseType, Select, StructNode, TableNode, TermSymbol, Type, Union }
-import slick.async.sql.SqlUtilsComponent
 import slick.compiler.{ CompilerState, RewriteBooleans }
 import slick.lifted.{ SimpleBinaryOperator, SimpleFunction, SimpleLiteral }
 import slick.relational.RelationalCapabilities
 import slick.util._
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.ast.Util.nodeToNodeOps
-import slick.async.jdbc.config.BasicCapabilities
+import slick.async.jdbc.config.{ BasicCapabilities, BasicSqlUtilsComponent }
 //import slick.basic.Capability
 
 import scala.collection.mutable.HashMap
 
-abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends SqlUtilsComponent { queryBuilder =>
+abstract class QueryBuilder(val tree: Node, val state: CompilerState) { queryBuilder =>
 
   val commonCapabilities: BasicCapabilities
+  val sqlUtilsComponent: BasicSqlUtilsComponent
 
   // Immutable config options (to be overridden by subclasses)
   protected val supportsTuples = true
@@ -34,7 +34,7 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends Sq
   // Mutable state accessible to subclasses
   protected val b = new SQLBuilder
   protected var currentPart: StatementPart = OtherPart
-  protected val symbolName = new QuotingSymbolNamer(Some(state.symbolNamer))
+  protected val symbolName = new sqlUtilsComponent.QuotingSymbolNamer(Some(state.symbolNamer))
   protected val joins = new HashMap[TermSymbol, Join]
   protected var currentUniqueFrom: Option[TermSymbol] = None
 
@@ -199,7 +199,7 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends Sq
     def addAlias = alias foreach { s => b += ' ' += symbolName(s) }
     n match {
       case t: TableNode =>
-        b += quoteTableName(t)
+        b += sqlUtilsComponent.quoteTableName(t)
         addAlias
       case j: Join =>
         buildJoin(j)
@@ -290,9 +290,9 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends Sq
         // JDBC defines an {escape } syntax but the unescaped version is understood by more DBs/drivers
         b"\($l like $r escape '$esc'\)"
       case Library.StartsWith(n, LiteralNode(s: String)) =>
-        b"\($n like ${JdbcTypeHelper.valueToSQLLiteral(likeEncode(s) + '%', ScalaBaseType.stringType)} escape '^'\)"
+        b"\($n like ${JdbcTypeHelper.valueToSQLLiteral(sqlUtilsComponent.likeEncode(s) + '%', ScalaBaseType.stringType)} escape '^'\)"
       case Library.EndsWith(n, LiteralNode(s: String)) =>
-        b"\($n like ${JdbcTypeHelper.valueToSQLLiteral("%" + likeEncode(s), ScalaBaseType.stringType)} escape '^'\)"
+        b"\($n like ${JdbcTypeHelper.valueToSQLLiteral("%" + sqlUtilsComponent.likeEncode(s), ScalaBaseType.stringType)} escape '^'\)"
       case Library.Trim(n) =>
         expr(Library.LTrim.typed[String](Library.RTrim.typed[String](n)), skipParens)
       case Library.Substring(n, start, end) =>
@@ -385,7 +385,7 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends Sq
       case o => throw new SlickException("A query for an UPDATE statement must resolve to a comprehension with a single table -- Unsupported shape: " + o)
     }
 
-    val qtn = quoteTableName(from)
+    val qtn = sqlUtilsComponent.quoteTableName(from)
     symbolName(gen) = qtn // Alias table to itself because UPDATE does not support aliases
     b"update $qtn set "
     b.sep(select, ", ")(field => b += symbolName(field) += " = ?")
@@ -413,7 +413,7 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends Sq
         }
       case o => fail("Unsupported shape: " + o + " -- A single SQL comprehension is required")
     }
-    val qtn = quoteTableName(from)
+    val qtn = sqlUtilsComponent.quoteTableName(from)
     symbolName(gen) = qtn // Alias table to itself because DELETE does not support aliases
     buildDeleteFrom(qtn)
     if (!where.isEmpty) {

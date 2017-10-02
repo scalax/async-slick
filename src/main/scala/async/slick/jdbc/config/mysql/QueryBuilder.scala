@@ -15,22 +15,25 @@ abstract class MysqlQueryBuilder(tree: Node, state: CompilerState) extends Query
   override protected val parenthesizeNestedRHSJoin = true
   override protected val quotedJdbcFns = Some(Nil)
 
-  override def expr(n: Node, skipParens: Boolean = false): Unit = n match {
-    case Library.Cast(ch) :@ JdbcTypeHelper(ti, _) =>
-      val tn = if (ti == columnTypes.stringJdbcType) "VARCHAR" else if (ti == columnTypes.bigDecimalJdbcType) "DECIMAL" else ti.sqlTypeName(None)
-      b"\({fn convert(!${ch},$tn)}\)"
-    case Library.NextValue(SequenceNode(name)) => b"`${name + "_nextval"}()"
-    case Library.CurrentValue(SequenceNode(name)) => b"`${name + "_currval"}()"
-    case RowNum(sym, true) => b"(@`$sym := @`$sym + 1)"
-    case RowNum(sym, false) => b"@`$sym"
-    case RowNumGen(sym, init) => b"@`$sym := $init"
-    case Union(left, right, all) =>
-      b"\{"
-      buildFrom(left, None, false)
-      if (all) b"\nunion all " else b"\nunion "
-      buildFrom(right, None, false)
-      b"\}"
-    case _ => super.expr(n, skipParens)
+  override def expr(n: Node, skipParens: Boolean = false): Unit = {
+    import sqlUtilsComponent.quoteIdentifier
+    n match {
+      case Library.Cast(ch) :@ JdbcTypeHelper(ti, _) =>
+        val tn = if (ti == columnTypes.stringJdbcType) "VARCHAR" else if (ti == columnTypes.bigDecimalJdbcType) "DECIMAL" else ti.sqlTypeName(None)
+        b"\({fn convert(!${ch},$tn)}\)"
+      case Library.NextValue(SequenceNode(name)) => b"`${name + "_nextval"}()"
+      case Library.CurrentValue(SequenceNode(name)) => b"`${name + "_currval"}()"
+      case RowNum(sym, true) => b"(@`$sym := @`$sym + 1)"
+      case RowNum(sym, false) => b"@`$sym"
+      case RowNumGen(sym, init) => b"@`$sym := $init"
+      case Union(left, right, all) =>
+        b"\{"
+        buildFrom(left, None, false)
+        if (all) b"\nunion all " else b"\nunion "
+        buildFrom(right, None, false)
+        b"\}"
+      case _ => super.expr(n, skipParens)
+    }
   }
 
   override protected def buildFetchOffsetClause(fetch: Option[Node], offset: Option[Node]) = (fetch, offset) match {

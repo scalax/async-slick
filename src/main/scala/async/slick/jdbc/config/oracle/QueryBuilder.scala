@@ -18,8 +18,8 @@ abstract class OracleQueryBuilder(tree: Node, state: CompilerState) extends Quer
 
   override def expr(c: Node, skipParens: Boolean = false): Unit = c match {
     case RowNumber(_) => b"rownum"
-    case Library.NextValue(SequenceNode(name)) => b += quoteIdentifier(name) += ".nextval"
-    case Library.CurrentValue(SequenceNode(name)) => b += quoteIdentifier(name) += ".currval"
+    case Library.NextValue(SequenceNode(name)) => b += sqlUtilsComponent.quoteIdentifier(name) += ".nextval"
+    case Library.CurrentValue(SequenceNode(name)) => b += sqlUtilsComponent.quoteIdentifier(name) += ".currval"
     case Library.Database() => b += "ORA_DATABASE_NAME"
     case Library.Repeat(s, n) => b"RPAD($s, LENGTH($s)*$n, $s)"
     case Library.==(left: ProductNode, right: ProductNode) => //TODO

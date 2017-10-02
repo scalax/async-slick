@@ -1,6 +1,6 @@
 package slick.async.jdbc.config
 
-import slick.ast.{Symbol, SymbolNamer, TableNode}
+import slick.ast.{ Symbol, SymbolNamer, TableNode }
 
 trait BasicSqlUtilsComponent {
 

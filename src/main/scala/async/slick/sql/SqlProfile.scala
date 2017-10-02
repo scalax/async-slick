@@ -1,19 +1,18 @@
 package slick.async.sql
 
-import slick.async.basic.{BasicAction, BasicStreamingAction}
-import slick.async.relational.{RelationalActionComponent, RelationalTableComponent}
+import slick.async.basic.{ BasicAction, BasicStreamingAction }
+import slick.async.relational.{ RelationalActionComponent, RelationalTableComponent }
 import slick.async.relational.RelationalProfile
 
 import scala.language.higherKinds
 import slick.async.dbio._
-import slick.ast.{ColumnOption, Symbol, SymbolNamer, TableNode}
-import slick.async.jdbc.config.{RelationalQueryCompiler, SqlQueryCompiler, SqlTableColumnOptions}
+import slick.ast.{ ColumnOption, Symbol, SymbolNamer, TableNode }
+import slick.async.jdbc.config.{ RelationalQueryCompiler, SqlQueryCompiler, SqlTableColumnOptions }
 import slick.lifted.Tag
 import slick.util.DumpInfo
 
 /** Abstract profile for SQL-based databases. */
-trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlActionComponent
-    /* internal:*//*with SqlUtilsComponent*/{
+trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlActionComponent /* internal:*/ /*with SqlUtilsComponent*/ {
 
   @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   override val profile: SqlProfile = this
@@ -22,7 +21,7 @@ trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlAction
   //super.computeQueryCompiler ++ QueryCompiler.sqlPhases
   //override protected def computeCapabilities = super.computeCapabilities ++ SqlCapabilities.all
 
-  type SchemaDescription = DDL
+  //type SchemaDescription = DDL
 
   trait DDL extends SchemaDescriptionDef { self =>
     /** Statements to execute first for create(), e.g. creating tables and indexes. */
@@ -148,7 +147,7 @@ trait SqlTableComponent extends RelationalTableComponent { self: SqlProfile =>
   abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
     def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
     override def tableProvider: RelationalProfile = self
-    override val O: SqlTableColumnOptions = new SqlTableColumnOptions { }
+    override val O: SqlTableColumnOptions = new SqlTableColumnOptions {}
   }
 }
 

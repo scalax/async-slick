@@ -10,7 +10,7 @@ import slick.SlickException
 import slick.basic.Capability
 import slick.async.dbio._
 import slick.ast._
-import slick.async.jdbc.config.{ BasicCapabilities, SQLiteCapabilities }
+import slick.async.jdbc.config.{ BasicCapabilities, InsertBuilder, SQLiteCapabilities }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
@@ -157,9 +157,14 @@ trait SQLiteProfile extends JdbcProfile { self =>
   override val columnTypes = new JdbcTypes
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLiteQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): super.InsertBuilder = new UpsertBuilder(node)
-  override def createInsertBuilder(node: Insert): super.InsertBuilder = new InsertBuilder(node)
+  override def createUpsertBuilder(node: Insert): InsertBuilder = new SQLiteUpsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+  override def createInsertBuilder(node: Insert): InsertBuilder = new SQLiteInsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
@@ -209,11 +214,11 @@ trait SQLiteProfile extends JdbcProfile { self =>
   }*/
 
   /* Extending super.InsertBuilder here instead of super.UpsertBuilder. INSERT OR REPLACE is almost identical to INSERT. */
-  class UpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
+  abstract class SQLiteUpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     override protected def buildInsertStart = allNames.mkString(s"insert or replace into $tableName (", ",", ") ")
   }
 
-  class InsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
+  abstract class SQLiteInsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     override protected def emptyInsert: String = s"insert into $tableName default values"
   }
 
@@ -232,7 +237,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
       }
     }
 
-    override def truncateTable = "delete from " + quoteTableName(tableNode)
+    override def truncateTable = "delete from " + sqlUtilsComponent.quoteTableName(tableNode)
   }
 
   class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {

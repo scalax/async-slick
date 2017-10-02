@@ -3,7 +3,8 @@ package slick.async.jdbc
 import java.sql.{ PreparedStatement, ResultSet }
 
 import slick.ast._
-import slick.compiler.{ CompilerState, CodeGen }
+import slick.async.jdbc.config.InsertBuilder
+import slick.compiler.{ CodeGen, CompilerState }
 import slick.relational._
 import slick.util.SQLBuilder
 

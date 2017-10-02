@@ -30,9 +30,9 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
 
   override val capabilitiesContent: BasicCapabilities
 
-  lazy val queryCompiler = compiler + new JdbcCodeGen(_.buildSelect)
-  lazy val updateCompiler = compiler + new JdbcCodeGen(_.buildUpdate)
-  lazy val deleteCompiler = compiler + new JdbcCodeGen(_.buildDelete)
+  lazy val queryCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildSelect)
+  lazy val updateCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildUpdate)
+  lazy val deleteCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildDelete)
   lazy val insertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.NonAutoInc), new JdbcInsertCodeGen(createInsertBuilder))
   lazy val forceInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(createInsertBuilder))
   lazy val upsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(createUpsertBuilder))
@@ -41,7 +41,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   def compileInsert(tree: Node) = new JdbcCompiledInsert(tree)
   type CompiledInsert = JdbcCompiledInsert
 
-  final def buildTableSchemaDescription(table: Table[_]): DDL = createTableDDLBuilder(table).buildDDL
+  override final def buildTableSchemaDescription(table: Table[_]): DDL = createTableDDLBuilder(table).buildDDL
   final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL = createSequenceDDLBuilder(seq).buildDDL
 
   trait LowPriorityAPI {

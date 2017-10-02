@@ -3,19 +3,20 @@ package slick.async.jdbc
 import java.util.UUID
 
 import scala.concurrent.ExecutionContext
-import java.sql.{Array => _, _}
+import java.sql.{ Array => _, _ }
 
 import slick.SlickException
 import slick.ast._
 import slick.async.basic.BasicStreamingAction
-import slick.compiler.{CompilerState, Phase}
+import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{BasicCapabilities, OracleCapabilities, OracleColumnOptions, OracleQueryCompiler}
-import slick.async.jdbc.meta.{MColumn, MQName, MTable}
+import slick.async.jdbc.config.{ BasicCapabilities, OracleCapabilities, OracleColumnOptions, OracleQueryCompiler }
+import slick.async.jdbc.meta.{ MColumn, MQName, MTable }
 import slick.lifted._
 import slick.model.ForeignKeyAction
-import slick.relational.{RelationalCapabilities, ResultConverter}
+import slick.relational.{ RelationalCapabilities, ResultConverter }
 import slick.async.relational.RelationalProfile
+import slick.async.sql.SqlProfile
 import slick.basic.Capability
 import slick.util.ConstArray
 import slick.util.MacroSupport.macroSupportInterpolation
@@ -82,7 +83,7 @@ trait OracleProfile extends JdbcProfile { self =>
   abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
     def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
     override def tableProvider: RelationalProfile = self
-    override val O: OracleColumnOptions = new OracleColumnOptions { }
+    override val O: OracleColumnOptions = new OracleColumnOptions {}
   }
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
@@ -116,6 +117,7 @@ trait OracleProfile extends JdbcProfile { self =>
 
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -181,9 +183,9 @@ trait OracleProfile extends JdbcProfile { self =>
     }
 
     override protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {
-      sb append "constraint " append quoteIdentifier(fk.name) append " foreign key("
+      sb append "constraint " append sqlUtilsComponent.quoteIdentifier(fk.name) append " foreign key("
       addForeignKeyColumnList(fk.linearizedSourceColumns, sb, table.tableName)
-      sb append ") references " append quoteIdentifier(fk.targetTable.tableName) append "("
+      sb append ") references " append sqlUtilsComponent.quoteIdentifier(fk.targetTable.tableName) append "("
       addForeignKeyColumnList(fk.linearizedTargetColumnsForOriginalTargetTable, sb, fk.targetTable.tableName)
       sb append ')'
       fk.onDelete match {
@@ -200,8 +202,8 @@ trait OracleProfile extends JdbcProfile { self =>
          * index) because Oracle does not allow a FOREIGN KEY CONSTRAINT to
          * reference columns which have a UNIQUE INDEX but not a nominal UNIQUE
          * CONSTRAINT. */
-        val sb = new StringBuilder append "ALTER TABLE " append quoteIdentifier(table.tableName) append " ADD "
-        sb append "CONSTRAINT " append quoteIdentifier(idx.name) append " UNIQUE("
+        val sb = new StringBuilder append "ALTER TABLE " append sqlUtilsComponent.quoteIdentifier(table.tableName) append " ADD "
+        sb append "CONSTRAINT " append sqlUtilsComponent.quoteIdentifier(idx.name) append " UNIQUE("
         addIndexColumnList(idx.on, sb, idx.table.tableName)
         sb append ")"
         sb.toString
@@ -214,7 +216,7 @@ trait OracleProfile extends JdbcProfile { self =>
     var triggerName: String = _
 
     override def appendColumn(sb: StringBuilder) {
-      val qname = quoteIdentifier(column.name)
+      val qname = sqlUtilsComponent.quoteIdentifier(column.name)
       sb append qname append ' '
       appendType(sb)
       appendOptions(sb)
@@ -237,10 +239,10 @@ trait OracleProfile extends JdbcProfile { self =>
     }
 
     def createSequenceAndTrigger(t: Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
-      val tab = quoteIdentifier(t.tableName)
-      val seq = quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
-      val trg = quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
-      val col = quoteIdentifier(column.name)
+      val tab = sqlUtilsComponent.quoteIdentifier(t.tableName)
+      val seq = sqlUtilsComponent.quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
+      val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
+      val col = sqlUtilsComponent.quoteIdentifier(column.name)
       Seq(
         s"create sequence $seq start with 1 increment by 1",
         s"create or replace trigger $trg before insert on $tab referencing new as new for each row" +
@@ -249,8 +251,8 @@ trait OracleProfile extends JdbcProfile { self =>
     }
 
     def dropTriggerAndSequence(t: Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
-      val seq = quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
-      val trg = quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
+      val seq = sqlUtilsComponent.quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
+      val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
       Seq(
         s"drop trigger $trg",
         s"drop sequence $seq"
@@ -260,13 +262,13 @@ trait OracleProfile extends JdbcProfile { self =>
 
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
-      val b = new StringBuilder append "create sequence " append quoteIdentifier(seq.name)
+      val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
       seq._increment.foreach { b append " increment by " append _ }
       seq._minValue.foreach { b append " minvalue " append _ }
       seq._maxValue.foreach { b append " maxvalue " append _ }
       seq._start.foreach { b append " start with " append _ }
       if (seq._cycle) b append " cycle nocache"
-      DDL(b.toString, "drop sequence " + quoteIdentifier(seq.name))
+      DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
   }
 
@@ -352,9 +354,9 @@ trait OracleProfile extends JdbcProfile { self =>
    * trigger statement in a PreparedStatement. Since we need to create
    * these statements for the AutoInc emulation, we execute all DDL
    * statements with a non-prepared Statement. */
-  override def createSchemaActionExtensionMethods(schema: SchemaDescription): SchemaActionExtensionMethods =
+  override def createSchemaActionExtensionMethods(schema: SqlProfile#DDL): SchemaActionExtensionMethods =
     new SchemaActionExtensionMethodsImpl(schema)
-  class SchemaActionExtensionMethodsImpl(schema: SchemaDescription) extends super.SchemaActionExtensionMethodsImpl(schema) {
+  class SchemaActionExtensionMethodsImpl(schema: SqlProfile#DDL) extends super.SchemaActionExtensionMethodsImpl(schema) {
     override def create: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withStatement()(_.execute(s))

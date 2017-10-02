@@ -8,7 +8,7 @@ import slick.ast._
 import slick.basic.Capability
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ BasicCapabilities, PostgresCapabilities, PostgresQueryCompiler }
+import slick.async.jdbc.config._
 import slick.async.jdbc.meta.{ MColumn, MIndexInfo, MTable }
 import slick.async.relational.RelationalProfile
 import slick.util.ConstArray
@@ -143,8 +143,11 @@ trait PostgresProfile extends JdbcProfile { self =>
   //super.computeQueryCompiler - Phase.rewriteDistinct
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
+  override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override protected lazy val useServerSideUpsert = true
@@ -199,10 +202,10 @@ trait PostgresProfile extends JdbcProfile { self =>
     }
   }*/
 
-  class UpsertBuilder(ins: Insert) extends super.UpsertBuilder(ins) {
+  abstract class PostgresUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     override def buildInsert: InsertBuilderResult = {
       val update = "update " + tableName + " set " + softNames.map(n => s"$n=?").mkString(",") + " where " + pkNames.map(n => s"$n=?").mkString(" and ")
-      val nonAutoIncNames = nonAutoIncSyms.map(fs => quoteIdentifier(fs.name)).mkString(",")
+      val nonAutoIncNames = nonAutoIncSyms.map(fs => sqlUtilsComponent.quoteIdentifier(fs.name)).mkString(",")
       val nonAutoIncVars = nonAutoIncSyms.map(_ => "?").mkString(",")
       val cond = pkNames.map(n => s"$n=?").mkString(" and ")
       val insert = s"insert into $tableName ($nonAutoIncNames) select $nonAutoIncVars where not exists (select 1 from $tableName where $cond)"
@@ -221,13 +224,13 @@ trait PostgresProfile extends JdbcProfile { self =>
         case cb: ColumnDDLBuilder => cb.dropLobTrigger(table.tableName)
       }
       if (dropLobs.isEmpty) super.dropPhase1
-      else Seq("delete from " + quoteIdentifier(table.tableName)) ++ dropLobs ++ super.dropPhase1
+      else Seq("delete from " + sqlUtilsComponent.quoteIdentifier(table.tableName)) ++ dropLobs ++ super.dropPhase1
     }
   }
 
   class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override def appendColumn(sb: StringBuilder) {
-      sb append quoteIdentifier(column.name) append ' '
+      sb append sqlUtilsComponent.quoteIdentifier(column.name) append ' '
       if (autoIncrement && !customSqlType) {
         sb append (if (sqlType.toUpperCase == "BIGINT") "BIGSERIAL" else "SERIAL")
       } else appendType(sb)
@@ -236,18 +239,18 @@ trait PostgresProfile extends JdbcProfile { self =>
     }
 
     def lobTrigger(tname: String) =
-      quoteIdentifier(tname + "__" + quoteIdentifier(column.name) + "_lob")
+      sqlUtilsComponent.quoteIdentifier(tname + "__" + sqlUtilsComponent.quoteIdentifier(column.name) + "_lob")
 
     def createLobTrigger(tname: String): Option[String] =
       if (sqlType == "lo") Some(
         "create trigger " + lobTrigger(tname) + " before update or delete on " +
-          quoteIdentifier(tname) + " for each row execute procedure lo_manage(" + quoteIdentifier(column.name) + ")"
+          sqlUtilsComponent.quoteIdentifier(tname) + " for each row execute procedure lo_manage(" + sqlUtilsComponent.quoteIdentifier(column.name) + ")"
       )
       else None
 
     def dropLobTrigger(tname: String): Option[String] =
       if (sqlType == "lo") Some(
-        "drop trigger " + lobTrigger(tname) + " on " + quoteIdentifier(tname)
+        "drop trigger " + lobTrigger(tname) + " on " + sqlUtilsComponent.quoteIdentifier(tname)
       )
       else None
   }

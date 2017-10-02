@@ -7,6 +7,7 @@ import slick.async.dbio._
 import slick.lifted._
 import slick.util.GlobalConfig
 import com.typesafe.config.Config
+import slick.async.sql.SqlProfile
 import slick.basic.Capability
 
 /** The basic functionality that has to be implemented by all profiles. */
@@ -30,7 +31,7 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
   //protected def computeCapabilities: Set[Capability] = Set.empty
 
   /** The type of a schema description (DDL) */
-  type SchemaDescription <: SchemaDescriptionDef
+  //type SchemaDescription <: SchemaDescriptionDef
 
   /**
    * A schema description contains the SQL statements for creating and
@@ -39,7 +40,9 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
    * circular dependencies.
    */
   trait SchemaDescriptionDef {
-    def ++(other: SchemaDescription): SchemaDescription
+    //def ++(other: SchemaDescription): SchemaDescription
+    def ++(other: SqlProfile#DDL): SqlProfile#DDL
+
   }
 
   trait API extends slick.async.lifted.LiftedAliases with slick.async.dbio.DBIOAliases with ExtensionMethodConversions {

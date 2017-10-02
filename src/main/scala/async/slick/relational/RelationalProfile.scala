@@ -8,9 +8,10 @@ import slick.lifted.FunctionSymbolExtensionMethods._
 import slick.lifted._
 import slick.relational._
 import slick.async.basic.BasicProfile
-import slick.async.jdbc.config.{ProfileTable, RelationalColumnOptions, RelationalQueryCompiler, RelationalQueryCompiler11}
+import slick.async.jdbc.config.{ ProfileTable, RelationalColumnOptions, RelationalQueryCompiler }
+import slick.async.sql.SqlProfile
 
-import scala.language.{higherKinds, implicitConversions}
+import scala.language.{ higherKinds, implicitConversions }
 import scala.reflect.ClassTag
 
 /**
@@ -48,8 +49,8 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
     implicit def streamableCompiledInsertActionExtensionMethods[EU](c: StreamableCompiled[_, _, EU]): InsertActionExtensionMethods[EU] = createInsertActionExtensionMethods[EU](c.compiledInsert.asInstanceOf[CompiledInsert])
     implicit def queryInsertActionExtensionMethods[U, C[_]](q: Query[_, U, C]): InsertActionExtensionMethods[U] = createInsertActionExtensionMethods[U](compileInsert(q.toNode))
 
-    implicit def schemaActionExtensionMethods(sd: SchemaDescription): SchemaActionExtensionMethods = createSchemaActionExtensionMethods(sd)
-
+    //implicit def schemaActionExtensionMethods(sd: SchemaDescription): SchemaActionExtensionMethods = createSchemaActionExtensionMethods(sd)
+    implicit def schemaActionExtensionMethods(sd: SqlProfile#DDL): SchemaActionExtensionMethods = createSchemaActionExtensionMethods(sd)
     implicit def fastPathExtensionMethods[T, P](mp: MappedProjection[T, P]): FastPathExtensionMethods[ResultConverterDomain, T, P] = new FastPathExtensionMethods[ResultConverterDomain, T, P](mp)
   }
 
@@ -57,7 +58,7 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   final lazy val compiler = computeQueryCompiler
 
-  protected def computeQueryCompiler: RelationalQueryCompiler = new RelationalQueryCompiler { }
+  protected def computeQueryCompiler: RelationalQueryCompiler = new RelationalQueryCompiler {}
   /*{
     val base = QueryCompiler.standard
     val canJoinLeft = capabilities contains RelationalCapabilities.joinLeft
@@ -69,7 +70,8 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   class TableQueryExtensionMethods[T <: RelationalProfile#Table[_], U](val q: Query[T, U, Seq] with TableQuery[T]) {
     /** Get the schema description (DDL) for this table. */
-    def schema: SchemaDescription = buildTableSchemaDescription(q.shaped.value.asInstanceOf[Table[_]])
+    //def schema: SchemaDescription = buildTableSchemaDescription(q.shaped.value.asInstanceOf[Table[_]])
+    def schema: SqlProfile#DDL = buildTableSchemaDescription(q.shaped.value.asInstanceOf[Table[_]])
 
     /**
      * Create a `Compiled` query which selects all rows where the specified
@@ -116,7 +118,8 @@ object RelationalProfile {
 
 trait RelationalTableComponent { self: RelationalProfile =>
 
-  def buildTableSchemaDescription(table: Table[_]): SchemaDescription
+  def buildTableSchemaDescription(table: Table[_]): SqlProfile#DDL
+  //SchemaDescription
 
   /*trait ColumnOptions {
     val PrimaryKey = ColumnOption.PrimaryKey
@@ -131,7 +134,7 @@ trait RelationalTableComponent { self: RelationalProfile =>
   abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends ProfileTable[T](_tableTag, _schemaName, _tableName) {
     def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
     override def tableProvider: RelationalProfile = self
-    override val O: RelationalColumnOptions = new RelationalColumnOptions { }
+    override val O: RelationalColumnOptions = new RelationalColumnOptions {}
   }
 
   //TODO 准备删除
@@ -173,7 +176,7 @@ trait RelationalTableComponent { self: RelationalProfile =>
 
 trait RelationalSequenceComponent { self: RelationalProfile =>
 
-  def buildSequenceSchemaDescription(seq: Sequence[_]): SchemaDescription
+  def buildSequenceSchemaDescription(seq: Sequence[_]): SqlProfile#DDL
 
   class Sequence[T] private[Sequence] (
       val name: String,
@@ -195,7 +198,8 @@ trait RelationalSequenceComponent { self: RelationalProfile =>
 
     def toNode = SequenceNode(name)(_increment.map(integral.toLong).getOrElse(1))
 
-    def schema: SchemaDescription = buildSequenceSchemaDescription(this)
+    //def schema: SchemaDescription = buildSequenceSchemaDescription(this)
+    def schema: SqlProfile#DDL = buildSequenceSchemaDescription(this)
   }
 
   object Sequence {
@@ -259,7 +263,7 @@ trait RelationalActionComponent extends BasicActionComponent { self: RelationalP
 
   type SchemaActionExtensionMethods <: SchemaActionExtensionMethodsImpl
 
-  def createSchemaActionExtensionMethods(schema: SchemaDescription): SchemaActionExtensionMethods
+  def createSchemaActionExtensionMethods(schema: SqlProfile#DDL): SchemaActionExtensionMethods
 
   trait SchemaActionExtensionMethodsImpl {
     /** Create an Action that creates the entities described by this schema description. */

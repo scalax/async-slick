@@ -5,18 +5,12 @@ import com.typesafe.config.Config
 import scala.concurrent.ExecutionContext
 import slick.SlickException
 import slick.ast._
-import slick.ast.Util._
-import slick.ast.TypeUtil._
-import slick.async.jdbc.config.{ BasicCapabilities, MysqlCapabilities, MysqlQueryCompiler }
-import slick.basic.Capability
-import slick.compiler.{ CompilerState, Phase, ResolveZipJoins }
+import slick.async.jdbc.config._
+import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
 import slick.lifted._
-import slick.relational.RelationalCapabilities
 import slick.async.relational.RelationalProfile
-import slick.sql.SqlCapabilities
-import slick.util.{ ConstArray, GlobalConfig, SlickLogger }
-import slick.util.MacroSupport.macroSupportInterpolation
+import slick.util.{ GlobalConfig, SlickLogger }
 import slick.util.ConfigExtensionMethods.configExtensionMethods
 
 /**
@@ -67,6 +61,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     - JdbcCapabilities.nullableNoDefault
     - JdbcCapabilities.distinguishesIntTypes //https://github.com/slick/slick/pull/1735
   )*/
+  override val sqlUtilsComponent: BasicSqlUtilsComponent = new MysqlUtilsComponent {}
 
   override protected[this] def loadProfileConfig: Config = {
     if (!GlobalConfig.profileConfig("slick.driver.MySQL").entrySet().isEmpty)
@@ -125,8 +120,11 @@ trait MySQLProfile extends JdbcProfile { profile =>
   //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
     override lazy val commonCapabilities = profile.capabilitiesContent
+    override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
+  override def createUpsertBuilder(node: Insert): InsertBuilder = new MysqlUpsertBuilder(node) {
+    override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -237,7 +235,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     }
   }*/
 
-  class UpsertBuilder(ins: Insert) extends super.UpsertBuilder(ins) {
+  abstract class MysqlUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     override def buildInsert: InsertBuilderResult = {
       val start = buildInsertStart
       val update = softNames.map(n => s"$n=VALUES($n)").mkString(", ")
@@ -247,10 +245,10 @@ trait MySQLProfile extends JdbcProfile { profile =>
 
   class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
     override protected def dropForeignKey(fk: ForeignKey) = {
-      "ALTER TABLE " + quoteIdentifier(table.tableName) + " DROP FOREIGN KEY " + quoteIdentifier(fk.name)
+      "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP FOREIGN KEY " + sqlUtilsComponent.quoteIdentifier(fk.name)
     }
     override protected def dropPrimaryKey(pk: PrimaryKey): String = {
-      "ALTER TABLE " + quoteIdentifier(table.tableName) + " DROP PRIMARY KEY"
+      "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP PRIMARY KEY"
     }
   }
 
@@ -286,17 +284,17 @@ trait MySQLProfile extends JdbcProfile { profile =>
       }
       DDL(
         Iterable(
-          "create table " + quoteIdentifier(seq.name + "_seq") + " (id " + t + ")",
-          "insert into " + quoteIdentifier(seq.name + "_seq") + " values (" + beforeStart + ")",
-          "create function " + quoteIdentifier(seq.name + "_nextval") + "() returns " + sqlType + " begin update " +
-            quoteIdentifier(seq.name + "_seq") + " set id=last_insert_id(" + incExpr + "); return last_insert_id(); end",
-          "create function " + quoteIdentifier(seq.name + "_currval") + "() returns " + sqlType + " begin " +
-            "select max(id) into @v from " + quoteIdentifier(seq.name + "_seq") + "; return @v; end"
+          "create table " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + " (id " + t + ")",
+          "insert into " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + " values (" + beforeStart + ")",
+          "create function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_nextval") + "() returns " + sqlType + " begin update " +
+            sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + " set id=last_insert_id(" + incExpr + "); return last_insert_id(); end",
+          "create function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_currval") + "() returns " + sqlType + " begin " +
+            "select max(id) into @v from " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + "; return @v; end"
         ),
         Iterable(
-          "drop function " + quoteIdentifier(seq.name + "_currval"),
-          "drop function " + quoteIdentifier(seq.name + "_nextval"),
-          "drop table " + quoteIdentifier(seq.name + "_seq")
+          "drop function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_currval"),
+          "drop function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_nextval"),
+          "drop table " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq")
         )
       )
     }

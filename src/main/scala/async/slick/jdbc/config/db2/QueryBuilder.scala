@@ -19,8 +19,8 @@ abstract class DB2QueryBuilder(tree: Node, state: CompilerState) extends QueryBu
     case Library.IfNull(l, r) =>
       /* DB2 does not support IFNULL so we use COALESCE instead */
       b += "coalesce("; expr(l, true); b += ","; expr(r, true); b += ")"
-    case Library.NextValue(SequenceNode(name)) => b += "(next value for " += quoteIdentifier(name) += ")"
-    case Library.CurrentValue(SequenceNode(name)) => b += "(prevval for " += quoteIdentifier(name) += ")"
+    case Library.NextValue(SequenceNode(name)) => b += "(next value for " += sqlUtilsComponent.quoteIdentifier(name) += ")"
+    case Library.CurrentValue(SequenceNode(name)) => b += "(prevval for " += sqlUtilsComponent.quoteIdentifier(name) += ")"
     case Library.User() => b += "current user"
     case Library.Database() => b += "current server"
     case Library.CountAll(LiteralNode(1)) => b"count(*)"

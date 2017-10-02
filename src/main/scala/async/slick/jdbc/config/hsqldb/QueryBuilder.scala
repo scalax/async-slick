@@ -15,21 +15,24 @@ abstract class HsqldbQueryBuilder(tree: Node, state: CompilerState) extends Quer
   override protected val supportsLiteralGroupBy = true
   override protected val quotedJdbcFns = Some(Nil)
 
-  override def expr(c: Node, skipParens: Boolean = false): Unit = c match {
-    case l @ LiteralNode(v: String) if (v ne null) && JdbcTypeHelper.jdbcTypeFor(l.nodeType).sqlType != Types.CHAR =>
-      /* Hsqldb treats string literals as type CHARACTER and pads them with
-       * spaces in some expressions, so we cast all string literals to
-       * VARCHAR. The length is only 16M instead of 2^31-1 in order to leave
-       * enough room for concatenating strings (which extends the size even if
-       * it is not needed). */
-      b"cast("
-      super.expr(c)
-      b" as varchar(16777216))"
-    /* Hsqldb uses the SQL:2008 syntax for NEXTVAL */
-    case Library.NextValue(SequenceNode(name)) => b"(next value for `$name)"
-    case Library.CurrentValue(_*) => throw new SlickException("Hsqldb does not support CURRVAL")
-    case RowNumber(_) => b"rownum()" // Hsqldb uses Oracle ROWNUM semantics but needs parens
-    case _ => super.expr(c, skipParens)
+  override def expr(c: Node, skipParens: Boolean = false): Unit = {
+    import sqlUtilsComponent.quoteIdentifier
+    c match {
+      case l @ LiteralNode(v: String) if (v ne null) && JdbcTypeHelper.jdbcTypeFor(l.nodeType).sqlType != Types.CHAR =>
+        /* Hsqldb treats string literals as type CHARACTER and pads them with
+         * spaces in some expressions, so we cast all string literals to
+         * VARCHAR. The length is only 16M instead of 2^31-1 in order to leave
+         * enough room for concatenating strings (which extends the size even if
+         * it is not needed). */
+        b"cast("
+        super.expr(c)
+        b" as varchar(16777216))"
+      /* Hsqldb uses the SQL:2008 syntax for NEXTVAL */
+      case Library.NextValue(SequenceNode(name)) => b"(next value for `$name)"
+      case Library.CurrentValue(_*) => throw new SlickException("Hsqldb does not support CURRVAL")
+      case RowNumber(_) => b"rownum()" // Hsqldb uses Oracle ROWNUM semantics but needs parens
+      case _ => super.expr(c, skipParens)
+    }
   }
 
   override protected def buildJoin(j: Join): Unit = {

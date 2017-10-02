@@ -5,9 +5,9 @@ import slick.SlickException
 import slick.ast._
 import slick.ast.Util.nodeToNodeOps
 import slick.async.jdbc.config._
-import slick.compiler.{CodeGen, CompilerState, QueryCompiler}
+import slick.compiler.{ CodeGen, CompilerState, QueryCompiler }
 import slick.lifted._
-import slick.relational.{CompiledMapping, ResultConverter}
+import slick.relational.{ CompiledMapping, ResultConverter }
 import slick.async.relational.RelationalProfile
 import slick.async.sql.SqlProfile
 import slick.util._
@@ -15,17 +15,21 @@ import slick.util._
 trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
   val capabilitiesContent: BasicCapabilities
-  val sqlUtilsComponent: BasicSqlUtilsComponent
+  val sqlUtilsComponent: BasicSqlUtilsComponent = new BasicSqlUtilsComponent {}
 
-  val crudCompiler: CrudCompiler = new CrudCompiler {
-    override val compilerContent = self.computeQueryCompiler
-    override val sqlUtilsComponent = self.sqlUtilsComponent
+  lazy val crudCompiler: CrudCompiler = new CrudCompiler {
+    override lazy val compilerContent = self.computeQueryCompiler
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
 
   // Create the different builders -- these methods should be overridden by profiles as needed
   def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder //= new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
-  //def createInsertBuilder(node: Insert): InsertBuilder = new InsertBuilder(node)
-  //def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
+  def createInsertBuilder(node: Insert): InsertBuilder = new InsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+  def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
   def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -506,7 +510,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   }*/
 
   /** Builder for INSERT statements. */
-  class InsertBuilder(val ins: Insert) {
+  /*class InsertBuilder(val ins: Insert) {
     protected val Insert(_, table: TableNode, ProductNode(rawColumns), allFields) = ins
     protected val syms: ConstArray[FieldSymbol] = rawColumns.map { case Select(_, fs: FieldSymbol) => fs }
     protected lazy val allNames = syms.map(fs => quoteIdentifier(fs.name))
@@ -579,7 +583,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
       val cond = pkNames.map(n => s"t.$n=s.$n").mkString(" and ")
       s") s on ($cond) when matched then update set $updateCols when not matched then insert ($insertCols) values ($insertVals)"
     }
-  }
+  }*/
 
   /**
    * Builder for SELECT statements that can be used to check for the existing of
@@ -587,6 +591,8 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
    * on databases that don't support this in a single server-side statement.
    */
   class CheckInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+
     override def buildInsert: InsertBuilderResult =
       new InsertBuilderResult(table, pkNames.map(n => s"$n=?").mkString(s"select 1 from $tableName where ", " and ", ""), ConstArray.from(pkSyms))
   }
@@ -596,6 +602,8 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
    * on databases that don't support this in a single server-side statement.
    */
   class UpdateInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+
     override def buildInsert: InsertBuilderResult =
       new InsertBuilderResult(
         table,
@@ -628,7 +636,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     protected def truncatePhase = Iterable(truncateTable)
 
     protected def createTable: String = {
-      val b = new StringBuilder append "create table " append quoteTableName(tableNode) append " ("
+      val b = new StringBuilder append "create table " append sqlUtilsComponent.quoteTableName(tableNode) append " ("
       var first = true
       for (c <- columns) {
         if (first) first = false else b append ","
@@ -641,51 +649,51 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
     protected def addTableOptions(b: StringBuilder) {}
 
-    protected def dropTable: String = "drop table " + quoteTableName(tableNode)
+    protected def dropTable: String = "drop table " + sqlUtilsComponent.quoteTableName(tableNode)
 
-    protected def truncateTable: String = "truncate table " + quoteTableName(tableNode)
+    protected def truncateTable: String = "truncate table " + sqlUtilsComponent.quoteTableName(tableNode)
 
     protected def createIndex(idx: Index): String = {
       val b = new StringBuilder append "create "
       if (idx.unique) b append "unique "
-      b append "index " append quoteIdentifier(idx.name) append " on " append quoteTableName(tableNode) append " ("
+      b append "index " append sqlUtilsComponent.quoteIdentifier(idx.name) append " on " append sqlUtilsComponent.quoteTableName(tableNode) append " ("
       addIndexColumnList(idx.on, b, idx.table.tableName)
       b append ")"
       b.toString
     }
 
     protected def createForeignKey(fk: ForeignKey): String = {
-      val sb = new StringBuilder append "alter table " append quoteTableName(tableNode) append " add "
+      val sb = new StringBuilder append "alter table " append sqlUtilsComponent.quoteTableName(tableNode) append " add "
       addForeignKey(fk, sb)
       sb.toString
     }
 
     protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {
-      sb append "constraint " append quoteIdentifier(fk.name) append " foreign key("
+      sb append "constraint " append sqlUtilsComponent.quoteIdentifier(fk.name) append " foreign key("
       addForeignKeyColumnList(fk.linearizedSourceColumns, sb, tableNode.tableName)
-      sb append ") references " append quoteTableName(fk.targetTable) append "("
+      sb append ") references " append sqlUtilsComponent.quoteTableName(fk.targetTable) append "("
       addForeignKeyColumnList(fk.linearizedTargetColumnsForOriginalTargetTable, sb, fk.targetTable.tableName)
       sb append ") on update " append fk.onUpdate.action
       sb append " on delete " append fk.onDelete.action
     }
 
     protected def createPrimaryKey(pk: PrimaryKey): String = {
-      val sb = new StringBuilder append "alter table " append quoteTableName(tableNode) append " add "
+      val sb = new StringBuilder append "alter table " append sqlUtilsComponent.quoteTableName(tableNode) append " add "
       addPrimaryKey(pk, sb)
       sb.toString
     }
 
     protected def addPrimaryKey(pk: PrimaryKey, sb: StringBuilder) {
-      sb append "constraint " append quoteIdentifier(pk.name) append " primary key("
+      sb append "constraint " append sqlUtilsComponent.quoteIdentifier(pk.name) append " primary key("
       addPrimaryKeyColumnList(pk.columns, sb, tableNode.tableName)
       sb append ")"
     }
 
     protected def dropForeignKey(fk: ForeignKey): String =
-      "alter table " + quoteTableName(tableNode) + " drop constraint " + quoteIdentifier(fk.name)
+      "alter table " + sqlUtilsComponent.quoteTableName(tableNode) + " drop constraint " + sqlUtilsComponent.quoteIdentifier(fk.name)
 
     protected def dropPrimaryKey(pk: PrimaryKey): String =
-      "alter table " + quoteTableName(tableNode) + " drop constraint " + quoteIdentifier(pk.name)
+      "alter table " + sqlUtilsComponent.quoteTableName(tableNode) + " drop constraint " + sqlUtilsComponent.quoteIdentifier(pk.name)
 
     protected def addIndexColumnList(columns: IndexedSeq[Node], sb: StringBuilder, requiredTableName: String) =
       addColumnList(columns, sb, requiredTableName, "index")
@@ -702,7 +710,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
         case Select(t: TableNode, field: FieldSymbol) =>
           if (first) first = false
           else sb append ","
-          sb append quoteIdentifier(field.name)
+          sb append sqlUtilsComponent.quoteIdentifier(field.name)
           if (requiredTableName != t.tableName)
             throw new SlickException("All columns in " + typeInfo + " must belong to table " + requiredTableName)
         case _ => throw new SlickException("Cannot use column " + c + " in " + typeInfo + " (only named columns are allowed)")
@@ -748,7 +756,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     def appendType(sb: StringBuilder): Unit = sb append sqlType
 
     def appendColumn(sb: StringBuilder) {
-      sb append quoteIdentifier(column.name) append ' '
+      sb append sqlUtilsComponent.quoteIdentifier(column.name) append ' '
       appendType(sb)
       appendOptions(sb)
     }
@@ -765,13 +773,13 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   /** Builder for DDL statements for sequences. */
   class SequenceDDLBuilder(seq: Sequence[_]) {
     def buildDDL: DDL = {
-      val b = new StringBuilder append "create sequence " append quoteIdentifier(seq.name)
+      val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
       seq._increment.foreach { b append " increment " append _ }
       seq._minValue.foreach { b append " minvalue " append _ }
       seq._maxValue.foreach { b append " maxvalue " append _ }
       seq._start.foreach { b append " start " append _ }
       if (seq._cycle) b append " cycle"
-      DDL(b.toString, "drop sequence " + quoteIdentifier(seq.name))
+      DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
   }
 }

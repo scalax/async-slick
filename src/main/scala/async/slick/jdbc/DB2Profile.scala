@@ -59,6 +59,8 @@ trait DB2Profile extends JdbcProfile { self =>
   override val columnTypes = new JdbcTypes
   override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+
   }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -128,8 +130,8 @@ trait DB2Profile extends JdbcProfile { self =>
          * index) because DB2 does not allow a FOREIGN KEY CONSTRAINT to
          * reference columns which have a UNIQUE INDEX but not a nominal UNIQUE
          * CONSTRAINT. */
-        val sb = new StringBuilder append "ALTER TABLE " append quoteIdentifier(table.tableName) append " ADD "
-        sb append "CONSTRAINT " append quoteIdentifier(idx.name) append " UNIQUE("
+        val sb = new StringBuilder append "ALTER TABLE " append sqlUtilsComponent.quoteIdentifier(table.tableName) append " ADD "
+        sb append "CONSTRAINT " append sqlUtilsComponent.quoteIdentifier(idx.name) append " UNIQUE("
         addIndexColumnList(idx.on, sb, idx.table.tableName)
         sb append ")"
         sb.toString
@@ -138,31 +140,31 @@ trait DB2Profile extends JdbcProfile { self =>
 
     //For compatibility with all versions of DB2 
     //http://stackoverflow.com/questions/3006999/sql-query-to-truncate-table-in-ibm-db2
-    override def truncateTable = s"DELETE FROM ${quoteTableName(tableNode)}"
+    override def truncateTable = s"DELETE FROM ${sqlUtilsComponent.quoteTableName(tableNode)}"
   }
 
   class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override def appendColumn(sb: StringBuilder) {
-      val qname = quoteIdentifier(column.name)
+      val qname = sqlUtilsComponent.quoteIdentifier(column.name)
       sb append qname append ' '
       appendType(sb)
       appendOptions(sb)
       if (jdbcType.isInstanceOf[JdbcTypes#BooleanJdbcType]) {
-        sb append " constraint " + quoteIdentifier(column.name + "__bool") + " check (" append qname append " in (0, 1))"
+        sb append " constraint " + sqlUtilsComponent.quoteIdentifier(column.name + "__bool") + " check (" append qname append " in (0, 1))"
       }
     }
   }
 
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
-      val b = new StringBuilder append "create sequence " append quoteIdentifier(seq.name)
+      val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
       b append " as " append JdbcTypeHelper.jdbcTypeFor(seq.tpe).sqlTypeName(None)
       seq._start.foreach { b append " start with " append _ }
       seq._increment.foreach { b append " increment by " append _ }
       seq._minValue.foreach { b append " minvalue " append _ }
       seq._maxValue.foreach { b append " maxvalue " append _ }
       if (seq._cycle) b append " cycle"
-      DDL(b.toString, "drop sequence " + quoteIdentifier(seq.name))
+      DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
   }
 

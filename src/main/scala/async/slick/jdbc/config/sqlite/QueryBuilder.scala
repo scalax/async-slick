@@ -30,22 +30,24 @@ abstract class SQLiteQueryBuilder(tree: Node, state: CompilerState) extends Quer
     case _ =>
   }
 
-  override def expr(c: Node, skipParens: Boolean = false): Unit = c match {
-    case Library.UCase(ch) => b"upper(!$ch)"
-    case Library.LCase(ch) => b"lower(!$ch)"
-    case Library.Substring(n, start, end) =>
-      b"substr($n, ${QueryParameter.constOp[Int]("+")(_ + _)(start, LiteralNode(1).infer())}, ${QueryParameter.constOp[Int]("-")(_ - _)(end, start)})"
-    case Library.Substring(n, start) =>
-      b"substr($n, ${QueryParameter.constOp[Int]("+")(_ + _)(start, LiteralNode(1).infer())})\)"
-    case Library.IndexOf(n, str) => b"\(charindex($str, $n) - 1\)"
-    case Library.%(l, r) => b"\($l%$r\)"
-    case Library.Ceiling(ch) => b"round($ch+0.5)"
-    case Library.Floor(ch) => b"round($ch-0.5)"
-    case Library.User() => b"''"
-    case Library.Database() => b"''"
-    case RowNumber(_) => throw new SlickException("SQLite does not support row numbers")
-    // https://github.com/jOOQ/jOOQ/issues/1595
-    case Library.Repeat(n, times) => b"replace(substr(quote(zeroblob(($times + 1) / 2)), 3, $times), '0', $n)"
-    case _ => super.expr(c, skipParens)
+  override def expr(c: Node, skipParens: Boolean = false): Unit = {
+    c match {
+      case Library.UCase(ch) => b"upper(!$ch)"
+      case Library.LCase(ch) => b"lower(!$ch)"
+      case Library.Substring(n, start, end) =>
+        b"substr($n, ${QueryParameter.constOp[Int]("+")(_ + _)(start, LiteralNode(1).infer())}, ${QueryParameter.constOp[Int]("-")(_ - _)(end, start)})"
+      case Library.Substring(n, start) =>
+        b"substr($n, ${QueryParameter.constOp[Int]("+")(_ + _)(start, LiteralNode(1).infer())})\)"
+      case Library.IndexOf(n, str) => b"\(charindex($str, $n) - 1\)"
+      case Library.%(l, r) => b"\($l%$r\)"
+      case Library.Ceiling(ch) => b"round($ch+0.5)"
+      case Library.Floor(ch) => b"round($ch-0.5)"
+      case Library.User() => b"''"
+      case Library.Database() => b"''"
+      case RowNumber(_) => throw new SlickException("SQLite does not support row numbers")
+      // https://github.com/jOOQ/jOOQ/issues/1595
+      case Library.Repeat(n, times) => b"replace(substr(quote(zeroblob(($times + 1) / 2)), 3, $times), '0', $n)"
+      case _ => super.expr(c, skipParens)
+    }
   }
 }

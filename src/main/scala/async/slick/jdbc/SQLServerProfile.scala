@@ -10,7 +10,7 @@ import slick.ast.Util._
 import slick.basic.Capability
 import slick.compiler._
 import slick.async.dbio._
-import slick.async.jdbc.config.{ BasicCapabilities, SQLServerCapabilities, SQLServerQueryCompiler }
+import slick.async.jdbc.config._
 import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
 import slick.async.relational.RelationalProfile
@@ -82,9 +82,14 @@ trait SQLServerProfile extends JdbcProfile { self =>
   override val columnTypes = new SQLServerJdbcTypes {}
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLServerQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createInsertBuilder(node: Insert): super.InsertBuilder = new InsertBuilder(node)
-  override def createUpsertBuilder(node: Insert): super.InsertBuilder = new UpsertBuilder(node)
+  override def createInsertBuilder(node: Insert): InsertBuilder = new SQLServerInsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+  override def createUpsertBuilder(node: Insert): InsertBuilder = new SQLServerUpsertBuilder(node) {
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
 
@@ -143,11 +148,11 @@ trait SQLServerProfile extends JdbcProfile { self =>
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  class InsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
+  abstract class SQLServerInsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     override protected def emptyInsert: String = s"insert into $tableName default values"
   }
 
-  class UpsertBuilder(ins: Insert) extends super.UpsertBuilder(ins) {
+  abstract class SQLServerUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     // SQL Server requires MERGE statements to end with a semicolon (unlike all other
     // statements that you can execute via JDBC)
     override protected def buildMergeEnd: String = super.buildMergeEnd + ";"
@@ -157,9 +162,9 @@ trait SQLServerProfile extends JdbcProfile { self =>
     override protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {
       val updateAction = fk.onUpdate.action
       val deleteAction = fk.onDelete.action
-      sb append "constraint " append quoteIdentifier(fk.name) append " foreign key("
+      sb append "constraint " append sqlUtilsComponent.quoteIdentifier(fk.name) append " foreign key("
       addForeignKeyColumnList(fk.linearizedSourceColumns, sb, tableNode.tableName)
-      sb append ") references " append quoteTableName(fk.targetTable) append "("
+      sb append ") references " append sqlUtilsComponent.quoteTableName(fk.targetTable) append "("
       addForeignKeyColumnList(fk.linearizedTargetColumnsForOriginalTargetTable, sb, fk.targetTable.tableName)
       // SQLServer has no RESTRICT. Equivalent is NO ACTION. http://technet.microsoft.com/en-us/library/aa902684%28v=sql.80%29.aspx
       sb append ") on update " append (if (updateAction == "RESTRICT") "NO ACTION" else updateAction)
