@@ -8,7 +8,7 @@ import slick.async.jdbc.config._
 import slick.compiler.{ CodeGen, CompilerState, QueryCompiler }
 import slick.lifted._
 import slick.relational.{ CompiledMapping, ResultConverter }
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.async.sql.SqlProfile
 import slick.util._
 
@@ -24,16 +24,12 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
   // Create the different builders -- these methods should be overridden by profiles as needed
   def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder //= new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
-  def createInsertBuilder(node: Insert): InsertBuilder = new InsertBuilder(node) {
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
-  def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node) {
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  def createInsertBuilder(node: Insert): InsertBuilder = crudCompiler.createInsertBuilder(node)
+  def createUpsertBuilder(node: Insert): InsertBuilder = crudCompiler.createUpsertBuilder(node)
   def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
-  def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
 
   class JdbcCompiledInsert(source: Node) {
@@ -615,7 +611,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   }
 
   /** Builder for various DDL statements. */
-  class TableDDLBuilder(val table: Table[_]) { self =>
+  class TableDDLBuilder(val table: RelationalTableComponent#Table[_]) { self =>
     protected val tableNode = table.toNode.asInstanceOf[TableExpansion].table.asInstanceOf[TableNode]
     protected val columns: Iterable[ColumnDDLBuilder] = table.create_*.map(fs => createColumnDDLBuilder(fs, table))
     protected val indexes: Iterable[Index] = table.indexes

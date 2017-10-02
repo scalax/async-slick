@@ -8,7 +8,7 @@ import slick.async.dbio._
 import slick.async.jdbc.config.{ BasicCapabilities, HsqldbCapabilities, HsqldbQueryCompiler }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 
 /**
  * Slick profile for <a href="http://www.hsqldb.org/">HyperSQL</a>
@@ -56,7 +56,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
   override protected lazy val useServerSideUpsert = true
@@ -129,7 +129,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
     }
   }
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
       if (idx.unique) {
         /* Create a UNIQUE CONSTRAINT (with an automatically generated backing

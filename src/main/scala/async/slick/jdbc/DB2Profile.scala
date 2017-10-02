@@ -6,6 +6,7 @@ import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
 import slick.async.jdbc.config.{ BasicCapabilities, DB2Capabilities, DB2QueryCompiler }
 import slick.async.jdbc.meta.MTable
+import slick.async.relational.RelationalTableComponent
 import slick.lifted._
 import slick.relational.RelationalCapabilities
 import slick.basic.Capability
@@ -62,8 +63,8 @@ trait DB2Profile extends JdbcProfile { self =>
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
 
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
@@ -123,7 +124,7 @@ trait DB2Profile extends JdbcProfile { self =>
     }
   }*/
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
       if (idx.unique) {
         /* Create a UNIQUE CONSTRAINT (with an automatically generated backing

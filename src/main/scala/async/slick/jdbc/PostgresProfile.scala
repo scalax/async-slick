@@ -10,7 +10,7 @@ import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
 import slick.async.jdbc.config._
 import slick.async.jdbc.meta.{ MColumn, MIndexInfo, MTable }
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.util.ConstArray
 import slick.util.MacroSupport.macroSupportInterpolation
 
@@ -148,8 +148,8 @@ trait PostgresProfile extends JdbcProfile { self =>
   override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useTransactionForUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
@@ -215,7 +215,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms ++ nonAutoIncSyms.toSeq ++ pkSyms)
   }
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override def createPhase1 = super.createPhase1 ++ columns.flatMap {
       case cb: ColumnDDLBuilder => cb.createLobTrigger(table.tableName)
     }

@@ -14,6 +14,7 @@ import slick.async.jdbc.config.{ BasicCapabilities, InsertBuilder, SQLiteCapabil
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
+import slick.async.relational.RelationalTableComponent
 
 /**
  * Slick profile for SQLite.
@@ -165,8 +166,8 @@ trait SQLiteProfile extends JdbcProfile { self =>
   override def createInsertBuilder(node: Insert): InsertBuilder = new SQLiteInsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 
@@ -222,7 +223,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override protected def emptyInsert: String = s"insert into $tableName default values"
   }
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected val foreignKeys = Nil // handled directly in addTableOptions
     override protected val primaryKeys = Nil // handled directly in addTableOptions
 

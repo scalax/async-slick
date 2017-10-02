@@ -7,7 +7,7 @@ import slick.ast.TypeUtil.:@
 import slick.async.jdbc.config.BasicCapabilities
 import slick.compiler.{ InsertCompiler, Phase, QueryCompiler }
 import slick.lifted._
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.relational.CompiledMapping
 import slick.async.sql.SqlProfile
 
@@ -41,7 +41,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   def compileInsert(tree: Node) = new JdbcCompiledInsert(tree)
   type CompiledInsert = JdbcCompiledInsert
 
-  override final def buildTableSchemaDescription(table: Table[_]): DDL = createTableDDLBuilder(table).buildDDL
+  override final def buildTableSchemaDescription(table: RelationalTableComponent#Table[_]): DDL = createTableDDLBuilder(table).buildDDL
   final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL = createSequenceDDLBuilder(seq).buildDDL
 
   trait LowPriorityAPI {

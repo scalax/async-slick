@@ -9,7 +9,7 @@ import slick.async.jdbc.config._
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
 import slick.lifted._
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.util.{ GlobalConfig, SlickLogger }
 import slick.util.ConfigExtensionMethods.configExtensionMethods
 
@@ -125,8 +125,8 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override def createUpsertBuilder(node: Insert): InsertBuilder = new MysqlUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
   //override def quoteIdentifier(id: String) = '`' + id + '`'
@@ -243,7 +243,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     }
   }
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def dropForeignKey(fk: ForeignKey) = {
       "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP FOREIGN KEY " + sqlUtilsComponent.quoteIdentifier(fk.name)
     }

@@ -13,7 +13,7 @@ import slick.async.dbio._
 import slick.async.jdbc.config._
 import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.sql.SqlCapabilities
 import slick.util.{ ConstArray, GlobalConfig, SlickLogger }
 import slick.util.MacroSupport.macroSupportInterpolation
@@ -90,8 +90,8 @@ trait SQLServerProfile extends JdbcProfile { self =>
   override def createUpsertBuilder(node: Insert): InsertBuilder = new SQLServerUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {
@@ -158,7 +158,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     override protected def buildMergeEnd: String = super.buildMergeEnd + ";"
   }
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {
       val updateAction = fk.onUpdate.action
       val deleteAction = fk.onDelete.action

@@ -39,11 +39,11 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
    * creating or dropping multiple entities together, even if they have
    * circular dependencies.
    */
-  trait SchemaDescriptionDef {
+  /*trait SchemaDescriptionDef {
     //def ++(other: SchemaDescription): SchemaDescription
     def ++(other: SqlProfile#DDL): SqlProfile#DDL
 
-  }
+  }*/
 
   trait API extends slick.async.lifted.LiftedAliases with slick.async.dbio.DBIOAliases with ExtensionMethodConversions {
     type Database = Backend#Database

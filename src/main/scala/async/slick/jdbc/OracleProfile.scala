@@ -15,7 +15,7 @@ import slick.async.jdbc.meta.{ MColumn, MQName, MTable }
 import slick.lifted._
 import slick.model.ForeignKeyAction
 import slick.relational.{ RelationalCapabilities, ResultConverter }
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.async.sql.SqlProfile
 import slick.basic.Capability
 import slick.util.ConstArray
@@ -119,8 +119,8 @@ trait OracleProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
   override val columnTypes = new JdbcTypes
 
@@ -168,7 +168,7 @@ trait OracleProfile extends JdbcProfile { self =>
     }
   }*/
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override val createPhase1 = super.createPhase1 ++ createAutoIncSequences
     override val dropPhase2 = dropAutoIncSequences ++ super.dropPhase2
 
@@ -238,7 +238,7 @@ trait OracleProfile extends JdbcProfile { self =>
       case _ => super.handleColumnOption(o)
     }
 
-    def createSequenceAndTrigger(t: Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
+    def createSequenceAndTrigger(t: RelationalTableComponent#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
       val tab = sqlUtilsComponent.quoteIdentifier(t.tableName)
       val seq = sqlUtilsComponent.quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
       val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
@@ -250,7 +250,7 @@ trait OracleProfile extends JdbcProfile { self =>
       )
     }
 
-    def dropTriggerAndSequence(t: Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
+    def dropTriggerAndSequence(t: RelationalTableComponent#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
       val seq = sqlUtilsComponent.quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
       val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
       Seq(
@@ -354,9 +354,9 @@ trait OracleProfile extends JdbcProfile { self =>
    * trigger statement in a PreparedStatement. Since we need to create
    * these statements for the AutoInc emulation, we execute all DDL
    * statements with a non-prepared Statement. */
-  override def createSchemaActionExtensionMethods(schema: SqlProfile#DDL): SchemaActionExtensionMethods =
+  override def createSchemaActionExtensionMethods(schema: DDL): SchemaActionExtensionMethods =
     new SchemaActionExtensionMethodsImpl(schema)
-  class SchemaActionExtensionMethodsImpl(schema: SqlProfile#DDL) extends super.SchemaActionExtensionMethodsImpl(schema) {
+  class SchemaActionExtensionMethodsImpl(schema: DDL) extends super.SchemaActionExtensionMethodsImpl(schema) {
     override def create: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withStatement()(_.execute(s))

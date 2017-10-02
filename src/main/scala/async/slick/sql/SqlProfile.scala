@@ -23,7 +23,7 @@ trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlAction
 
   //type SchemaDescription = DDL
 
-  trait DDL extends SchemaDescriptionDef { self =>
+  /*trait DDL extends SchemaDescriptionDef { self =>
     /** Statements to execute first for create(), e.g. creating tables and indexes. */
     protected def createPhase1: Iterable[String]
 
@@ -88,7 +88,7 @@ trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlAction
     def apply(create1: Iterable[String], drop2: Iterable[String]): DDL = apply(create1, Nil, Nil, drop2, Nil)
 
     def apply(create1: String, drop2: String): DDL = apply(Iterable(create1), Iterable(drop2))
-  }
+  }*/
 }
 
 object SqlProfile {

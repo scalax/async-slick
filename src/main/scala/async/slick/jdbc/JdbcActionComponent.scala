@@ -291,10 +291,10 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
 
   type SchemaActionExtensionMethods = SchemaActionExtensionMethodsImpl
 
-  def createSchemaActionExtensionMethods(schema: SqlProfile#DDL): SchemaActionExtensionMethods =
+  def createSchemaActionExtensionMethods(schema: DDL): SchemaActionExtensionMethods =
     new SchemaActionExtensionMethodsImpl(schema)
 
-  class SchemaActionExtensionMethodsImpl(schema: SqlProfile#DDL) extends super.SchemaActionExtensionMethodsImpl {
+  class SchemaActionExtensionMethodsImpl(schema: DDL) extends super.SchemaActionExtensionMethodsImpl {
     def create: ProfileAction[Unit, NoStream, Effect.Schema] = new SimpleJdbcProfileAction[Unit]("schema.create", schema.createStatements.toVector) {
       def run(ctx: Backend#Context, sql: Vector[String]): Unit =
         for (s <- sql) ctx.session.withPreparedStatement(s)(_.execute)

@@ -3,7 +3,7 @@ package slick.async.jdbc
 import scala.concurrent.ExecutionContext
 import java.util.UUID
 
-import slick.async.relational.RelationalProfile
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.ast._
 import slick.async.jdbc.config.{ BasicCapabilities, H2Capabilities, H2QueryCompiler, InsertBuilder }
 import slick.compiler.CompilerState
@@ -80,7 +80,7 @@ trait H2Profile extends JdbcProfile { self =>
   override def createUpsertBuilder(node: Insert): InsertBuilder = new H2UpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 
