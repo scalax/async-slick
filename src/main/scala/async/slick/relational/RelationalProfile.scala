@@ -8,8 +8,8 @@ import slick.lifted.FunctionSymbolExtensionMethods._
 import slick.lifted._
 import slick.relational._
 import slick.async.basic.BasicProfile
-import slick.async.jdbc.DDL
-import slick.async.jdbc.config.{ ProfileTable, RelationalColumnOptions, RelationalQueryCompiler }
+import slick.async.jdbc.{ DDL, ImplicitColumnTypes, JdbcType }
+import slick.async.jdbc.config.{ BasicProfileAPI, ProfileTable, RelationalColumnOptions, RelationalQueryCompiler }
 import slick.async.sql.{ FixedSqlAction, SqlProfile }
 
 import scala.language.{ higherKinds, implicitConversions }
@@ -31,17 +31,13 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   //override protected def computeCapabilities = super.computeCapabilities ++ RelationalCapabilities.all
 
-  trait API extends super.API with ImplicitColumnTypes {
-    type FastPath[T] = SimpleFastPathResultConverter[ResultConverterDomain, T]
-    type Table[T] = self.Table[T]
-    type Sequence[T] = self.Sequence[T]
-    val Sequence = self.Sequence
-    type ColumnType[T] = self.ColumnType[T]
-    type BaseColumnType[T] = self.BaseColumnType[T]
-    val MappedColumnType = self.MappedColumnType
+  trait RelationalAPI {
 
-    @deprecated("Use an explicit conversion to an Option column with `.?`", "3.0")
-    implicit def columnToOptionColumn[T: BaseTypedType](c: Rep[T]): Rep[Option[T]] = c.?
+    type Database = Backend#Database
+    val Database = backend.Database
+    type Session = Backend#Session
+    type SlickException = slick.SlickException
+
     implicit def valueToConstColumn[T: TypedType](v: T): LiteralColumn[T] = new LiteralColumn[T](v)
     implicit def columnToOrdered[T: TypedType](c: Rep[T]): ColumnOrdered[T] = ColumnOrdered[T](c, Ordering())
     implicit def tableQueryToTableQueryExtensionMethods[T <: RelationalProfile#Table[_], U](q: Query[T, U, Seq] with TableQuery[T]): TableQueryExtensionMethods[T, U] =
@@ -54,8 +50,6 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
     implicit def schemaActionExtensionMethods(sd: DDL): SchemaActionExtensionMethods = createSchemaActionExtensionMethods(sd)
     implicit def fastPathExtensionMethods[T, P](mp: MappedProjection[T, P]): FastPathExtensionMethods[ResultConverterDomain, T, P] = new FastPathExtensionMethods[ResultConverterDomain, T, P](mp)
   }
-
-  val api: API
 
   final lazy val compiler = computeQueryCompiler
 
@@ -78,8 +72,9 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
      * Create a `Compiled` query which selects all rows where the specified
      * key matches the parameter value.
      */
-    def findBy[P](f: (T => Rep[P]))(implicit ashape: Shape[ColumnsShapeLevel, Rep[P], P, Rep[P]], pshape: Shape[ColumnsShapeLevel, P, P, _]): slick.async.lifted.CompiledFunction[Rep[P] => Query[T, U, Seq], Rep[P], P, Query[T, U, Seq], Seq[U]] = {
-      import self.api._
+    def findBy[P](f: (T => Rep[P]))(implicit ashape: Shape[ColumnsShapeLevel, Rep[P], P, Rep[P]], pshape: Shape[ColumnsShapeLevel, P, P, _], booleanTypedType: TypedType[Boolean]): slick.async.lifted.CompiledFunction[Rep[P] => Query[T, U, Seq], Rep[P], P, Query[T, U, Seq], Seq[U]] = {
+      //import self.api._
+      implicit val baicProfile: BasicProfile = self
       slick.async.lifted.Compiled { (p: Rep[P]) => (q: Query[T, U, Seq]).filter(table => Library.==.column[Boolean](f(table).toNode, p.toNode)) }
     }
   }
@@ -209,10 +204,10 @@ trait RelationalSequenceComponent { self: RelationalProfile =>
 }
 
 trait RelationalTypesComponent { self: RelationalProfile =>
-  type ColumnType[T] <: TypedType[T]
-  type BaseColumnType[T] <: ColumnType[T] with BaseTypedType[T]
+  //type ColumnType[T] <: TypedType[T]
+  //type BaseColumnType[T] <: ColumnType[T] with BaseTypedType[T]
 
-  val MappedColumnType: MappedColumnTypeFactory
+  /*val MappedColumnType: MappedColumnTypeFactory
 
   trait MappedColumnTypeFactory {
     def base[T: ClassTag, U: BaseColumnType](tmap: T => U, tcomap: U => T): BaseColumnType[T]
@@ -220,9 +215,9 @@ trait RelationalTypesComponent { self: RelationalProfile =>
     protected[this] def assertNonNullType(t: BaseColumnType[_]): Unit =
       if (t == null)
         throw new NullPointerException("implicit BaseColumnType[U] for MappedColumnType.base[T, U] is null. This may be an initialization order problem.")
-  }
-
-  trait ImplicitColumnTypes {
+  }*/
+  /*trait ImplicitColumnTypes {
+    type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
     implicit def isomorphicType[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: BaseColumnType[B]): BaseColumnType[A] =
       MappedColumnType.base[A, B](iso.map, iso.comap)
     implicit def booleanColumnType: BaseColumnType[Boolean]
@@ -235,7 +230,7 @@ trait RelationalTypesComponent { self: RelationalProfile =>
     implicit def longColumnType: BaseColumnType[Long] with NumericTypedType
     implicit def shortColumnType: BaseColumnType[Short] with NumericTypedType
     implicit def stringColumnType: BaseColumnType[String]
-  }
+  }*/
 }
 
 trait RelationalActionComponent extends BasicActionComponent { self: RelationalProfile =>

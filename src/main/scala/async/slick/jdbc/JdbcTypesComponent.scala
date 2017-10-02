@@ -1,13 +1,14 @@
 package slick.async.jdbc
 
-import java.sql.{ Blob, Clob, Date, Time, Timestamp, ResultSet, PreparedStatement }
+import java.sql.{ Blob, Clob, Date, PreparedStatement, ResultSet, Time, Timestamp }
 import java.util.UUID
 
 import scala.reflect.ClassTag
-
 import slick.SlickException
 import slick.ast._
 import slick.async.relational.{ RelationalProfile, RelationalTypesComponent }
+import slick.lifted.Isomorphism
+import scala.language.higherKinds
 
 trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
 
@@ -41,8 +42,7 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
       case _ => false
     }
   }
-
-  object MappedJdbcType extends MappedColumnTypeFactory {
+  /*object MappedJdbcType extends MappedColumnTypeFactory {
     def base[T: ClassTag, U: BaseColumnType](tmap: T => U, tcomap: U => T): BaseColumnType[T] = {
       assertNonNullType(implicitly[BaseColumnType[U]])
       new MappedJdbcType[T, U] with BaseTypedType[T] {
@@ -50,8 +50,7 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
         def comap(u: U) = tcomap(u)
       }
     }
-  }
-
+  }*/
   /*object JdbcType {
     def unapply(t: Type) = Some((jdbcTypeFor(t), t.isInstanceOf[OptionType]))
   }
@@ -97,8 +96,7 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
   }*/
 
   class JdbcTypes extends slick.async.jdbc.JdbcTypes
-
-  trait ImplicitColumnTypes extends super.ImplicitColumnTypes {
+  /*trait ImplicitColumnTypes extends super.ImplicitColumnTypes {
     implicit def booleanColumnType = columnTypes.booleanJdbcType
     implicit def blobColumnType = columnTypes.blobJdbcType
     implicit def byteColumnType = columnTypes.byteJdbcType
@@ -116,11 +114,61 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
     implicit def timestampColumnType = columnTypes.timestampJdbcType
     implicit def uuidColumnType = columnTypes.uuidJdbcType
     implicit def bigDecimalColumnType = columnTypes.bigDecimalJdbcType
-  }
+  }*/
 }
 
 object JdbcTypesComponent {
   private[slick] lazy val typeNames = Map() ++
     (for (f <- classOf[java.sql.Types].getFields)
       yield f.get(null).asInstanceOf[Int] -> f.getName)
+}
+
+trait BasicImplicitColumnTypes {
+  val MappedColumnType: MappedColumnTypeFactory
+
+  trait MappedColumnTypeFactory {
+    def base[T: ClassTag, U: BaseColumnType](tmap: T => U, tcomap: U => T): BaseColumnType[T]
+
+    protected[this] def assertNonNullType(t: BaseColumnType[_]): Unit =
+      if (t == null)
+        throw new NullPointerException("implicit BaseColumnType[U] for MappedColumnType.base[T, U] is null. This may be an initialization order problem.")
+  }
+  //type BaseColumnType[T] <: ColumnType[T] with BaseTypedType[T]
+  //type ColumnType[T] <: TypedType[T]
+  type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
+
+  implicit def isomorphicType[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: BaseColumnType[B]): BaseColumnType[A] =
+    MappedColumnType.base[A, B](iso.map, iso.comap)
+  implicit def booleanColumnType: BaseColumnType[Boolean]
+  implicit def bigDecimalColumnType: BaseColumnType[BigDecimal] with NumericTypedType
+  implicit def byteColumnType: BaseColumnType[Byte] with NumericTypedType
+  implicit def charColumnType: BaseColumnType[Char]
+  implicit def doubleColumnType: BaseColumnType[Double] with NumericTypedType
+  implicit def floatColumnType: BaseColumnType[Float] with NumericTypedType
+  implicit def intColumnType: BaseColumnType[Int] with NumericTypedType
+  implicit def longColumnType: BaseColumnType[Long] with NumericTypedType
+  implicit def shortColumnType: BaseColumnType[Short] with NumericTypedType
+  implicit def stringColumnType: BaseColumnType[String]
+}
+
+trait ImplicitColumnTypes extends BasicImplicitColumnTypes {
+  protected val columnTypes: slick.async.jdbc.JdbcTypes
+
+  override implicit def booleanColumnType: DriverJdbcType[Boolean] = columnTypes.booleanJdbcType
+  implicit def blobColumnType: DriverJdbcType[Blob] = columnTypes.blobJdbcType
+  override implicit def byteColumnType: DriverJdbcType[Byte] with NumericTypedType = columnTypes.byteJdbcType
+  implicit def byteArrayColumnType: DriverJdbcType[Array[Byte]] = columnTypes.byteArrayJdbcType
+  override implicit def charColumnType: DriverJdbcType[Char] = columnTypes.charJdbcType
+  implicit def clobColumnType: DriverJdbcType[Clob] = columnTypes.clobJdbcType
+  implicit def dateColumnType: DriverJdbcType[Date] = columnTypes.dateJdbcType
+  override implicit def doubleColumnType: DriverJdbcType[Double] with NumericTypedType = columnTypes.doubleJdbcType
+  override implicit def floatColumnType: DriverJdbcType[Float] with NumericTypedType = columnTypes.floatJdbcType
+  override implicit def intColumnType: DriverJdbcType[Int] with NumericTypedType = columnTypes.intJdbcType
+  override implicit def longColumnType: DriverJdbcType[Long] with NumericTypedType = columnTypes.longJdbcType
+  override implicit def shortColumnType: DriverJdbcType[Short] with NumericTypedType = columnTypes.shortJdbcType
+  override implicit def stringColumnType: DriverJdbcType[String] = columnTypes.stringJdbcType
+  implicit def timeColumnType: DriverJdbcType[Time] = columnTypes.timeJdbcType
+  implicit def timestampColumnType: DriverJdbcType[Timestamp] = columnTypes.timestampJdbcType
+  implicit def uuidColumnType: DriverJdbcType[UUID] = columnTypes.uuidJdbcType
+  override implicit def bigDecimalColumnType: DriverJdbcType[BigDecimal] with NumericTypedType = columnTypes.bigDecimalJdbcType
 }

@@ -60,7 +60,7 @@ trait BasicProfile extends BasicActionComponent { self =>
       override val jdbcInvokerComponent = self.jdbcInvokerComponent
     }*/
 
-  trait API extends slick.async.lifted.LiftedAliases with slick.async.dbio.DBIOAliases with ExtensionMethodConversions with BasicProfileAPI {
+  /*trait API extends slick.async.lifted.LiftedAliases with slick.async.dbio.DBIOAliases with ExtensionMethodConversions with BasicProfileAPI {
     type Database = Backend#Database
     val Database = backend.Database
     type Session = Backend#Session
@@ -73,7 +73,7 @@ trait BasicProfile extends BasicActionComponent { self =>
     //@deprecated("User `slickProfile` instead of `slickDriver`", "3.2")
     //val slickDriver: self.type = slickProfile
 
-    /*implicit final def anyToShapedValue[T, U](value: T)(implicit shape: Shape[_ <: FlatShapeLevel, T, U, _]): ShapedValue[T, U] =
+    implicit final def anyToShapedValue[T, U](value: T)(implicit shape: Shape[_ <: FlatShapeLevel, T, U, _]): ShapedValue[T, U] =
       new ShapedValue[T, U](value, shape)
 
     implicit def streamableQueryActionExtensionMethods[U, C[_]](q: Query[_, U, C]): StreamingQueryActionExtensionMethodsImpl[C[U], U] =
@@ -86,15 +86,15 @@ trait BasicProfile extends BasicActionComponent { self =>
     implicit def streamableAppliedCompiledFunctionActionExtensionMethods[R, RU, EU, C[_]](c: AppliedCompiledFunction[_, Query[R, EU, C], RU]): StreamingQueryActionExtensionMethodsImpl[RU, EU] =
       createStreamingQueryActionExtensionMethods[RU, EU](c.compiledQuery, c.param)
     implicit def recordQueryActionExtensionMethods[M, R](q: M)(implicit shape: Shape[_ <: FlatShapeLevel, M, R, _]): QueryActionExtensionMethodsImpl[R, NoStream] =
-      createQueryActionExtensionMethods[R, NoStream](crudCompiler.queryCompiler.run(shape.toNode(q)).tree, ())*/
-  }
+      createQueryActionExtensionMethods[R, NoStream](crudCompiler.queryCompiler.run(shape.toNode(q)).tree, ())
+  }*/
 
   /**
    * The API for using the query language with a single import
    * statement. This provides the profile's implicits, the Database API
    * and commonly used query language types and objects.
    */
-  val api: API
+  //val api: API
 
   /** The compiler used for queries */
   //def queryCompiler: QueryCompiler
