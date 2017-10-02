@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 import slick.ast._
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, DB2Capabilities, DB2QueryCompiler }
+import slick.async.jdbc.config.{ BasicCapabilities, DB2Capabilities, DB2QueryCompiler }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.relational.RelationalCapabilities
@@ -51,9 +51,9 @@ trait DB2Profile extends JdbcProfile { self =>
   override protected lazy val useServerSideUpsertReturning = false
   override protected val invokerMutateType: ResultSetType = ResultSetType.ScrollSensitive
 
-  override lazy val capabilitiesContent: CommonCapabilities = new DB2Capabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new DB2Capabilities {}
 
-  override protected def computeQueryCompiler = new DB2QueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new DB2QueryCompiler {}
   /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       + Phase.rewriteBooleans)*/
   override val columnTypes = new JdbcTypes

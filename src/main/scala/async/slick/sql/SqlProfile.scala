@@ -1,23 +1,24 @@
 package slick.async.sql
 
-import slick.async.basic.{ BasicAction, BasicStreamingAction }
-import slick.async.relational.{ RelationalActionComponent, RelationalTableComponent }
+import slick.async.basic.{BasicAction, BasicStreamingAction}
+import slick.async.relational.{RelationalActionComponent, RelationalTableComponent}
 import slick.async.relational.RelationalProfile
 
 import scala.language.higherKinds
 import slick.async.dbio._
-import slick.ast.{ ColumnOption, Symbol, SymbolNamer, TableNode }
-import slick.async.jdbc.config.SqlQueryCompiler
+import slick.ast.{ColumnOption, Symbol, SymbolNamer, TableNode}
+import slick.async.jdbc.config.{RelationalQueryCompiler, SqlQueryCompiler, SqlTableColumnOptions}
+import slick.lifted.Tag
 import slick.util.DumpInfo
 
 /** Abstract profile for SQL-based databases. */
 trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlActionComponent
-    /* internal: */ with SqlUtilsComponent {
+    /* internal:*//*with SqlUtilsComponent*/{
 
   @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   override val profile: SqlProfile = this
 
-  override protected def computeQueryCompiler = new SqlQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler: RelationalQueryCompiler = new SqlQueryCompiler {}
   //super.computeQueryCompiler ++ QueryCompiler.sqlPhases
   //override protected def computeCapabilities = super.computeCapabilities ++ SqlCapabilities.all
 
@@ -110,8 +111,7 @@ object SqlProfile {
     case class SqlType(val typeName: String) extends ColumnOption[Nothing]
   }
 }
-
-trait SqlUtilsComponent { self /*: SqlProfile*/ =>
+/*trait SqlUtilsComponent { self /*: SqlProfile*/ =>
 
   /** quotes identifiers to avoid collisions with SQL keywords and other syntax issues */
   def quoteIdentifier(id: String): String = {
@@ -137,15 +137,19 @@ trait SqlUtilsComponent { self /*: SqlProfile*/ =>
   class QuotingSymbolNamer(parent: Option[SymbolNamer]) extends SymbolNamer("x", "y", parent) {
     override def namedSymbolName(s: Symbol) = quoteIdentifier(s.name)
   }
-}
+}*/
+trait SqlTableComponent extends RelationalTableComponent { self: SqlProfile =>
 
-trait SqlTableComponent extends RelationalTableComponent { this: SqlProfile =>
-
-  trait ColumnOptions extends super.ColumnOptions {
+  /*trait ColumnOptions extends super.ColumnOptions {
     def SqlType(typeName: String) = SqlProfile.ColumnOption.SqlType(typeName)
   }
 
-  override val columnOptions: ColumnOptions = new ColumnOptions {}
+  override val columnOptions: ColumnOptions = new ColumnOptions {}*/
+  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
+    def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
+    override def tableProvider: RelationalProfile = self
+    override val O: SqlTableColumnOptions = new SqlTableColumnOptions { }
+  }
 }
 
 trait SqlActionComponent extends RelationalActionComponent { this: SqlProfile =>

@@ -1,25 +1,26 @@
 package slick.async.jdbc
 
-import slick.async.sql.{ FixedSqlStreamingAction, FixedSqlAction }
+import slick.async.sql.{ FixedSqlAction, FixedSqlStreamingAction }
 import slick.async.sql.SqlActionComponent
 
 import scala.language.{ existentials, higherKinds }
-
 import java.sql.{ PreparedStatement, Statement }
 
 import scala.collection.mutable.Builder
 import scala.util.control.NonFatal
-
 import slick.SlickException
 import slick.async.dbio._
 import slick.ast._
 import slick.ast.Util._
 import slick.ast.TypeUtil.:@
-import slick.lifted.{ CompiledStreamingExecutable, Query, FlatShapeLevel, Shape }
-import slick.relational.{ ResultConverter, CompiledMapping }
+import slick.async.jdbc.config.BasicCapabilities
+import slick.lifted.{ CompiledStreamingExecutable, FlatShapeLevel, Query, Shape }
+import slick.relational.{ CompiledMapping, ResultConverter }
 import slick.util.{ DumpInfo, SQLBuilder, ignoreFollowOnError }
 
 trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
+
+  val capabilitiesContent: BasicCapabilities
 
   type ProfileAction[+R, +S <: NoStream, -E <: Effect] = FixedSqlAction[R, S, E]
   type StreamingProfileAction[+R, +T, -E <: Effect] = FixedSqlStreamingAction[R, T, E]
@@ -352,9 +353,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
   def createReturningInsertActionComposer[U, QR, RU](compiled: CompiledInsert, keys: Node, mux: (U, QR) => RU): ReturningInsertActionComposer[U, RU] =
     new ReturningInsertActionComposerImpl[U, QR, RU](compiled, keys, mux)
 
-  //TODO 未做多样化工作
-  protected lazy val useServerSideUpsert: Boolean = ???
-  //capabilities contains JdbcCapabilities.insertOrUpdate
+  protected lazy val useServerSideUpsert: Boolean = capabilitiesContent.capabilities contains JdbcCapabilities.insertOrUpdate
   protected lazy val useTransactionForUpsert = !useServerSideUpsert
   protected lazy val useServerSideUpsertReturning = useServerSideUpsert
   protected lazy val useTransactionForUpsertReturning = !useServerSideUpsertReturning

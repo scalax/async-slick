@@ -10,7 +10,7 @@ import slick.ast.Util._
 import slick.basic.Capability
 import slick.compiler._
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, SQLServerCapabilities, SQLServerQueryCompiler }
+import slick.async.jdbc.config.{ BasicCapabilities, SQLServerCapabilities, SQLServerQueryCompiler }
 import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
 import slick.async.relational.RelationalProfile
@@ -60,7 +60,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
       SlickLogger[SQLServerProfile].warn("The config key 'slick.driver.SQLServer' is deprecated and not used anymore. Use 'slick.jdbc.SQLServerProfile' instead.")
     super.loadProfileConfig
   }
-  override lazy val capabilitiesContent: CommonCapabilities = new SQLServerCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new SQLServerCapabilities {}
 
   protected lazy val defaultStringType = profileConfig.getStringOpt("defaultStringType")
 
@@ -71,7 +71,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     - SqlCapabilities.sequence
     - JdbcCapabilities.supportsByte)*/
 
-  override protected def computeQueryCompiler = new SQLServerQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new SQLServerQueryCompiler {}
   /*(super.computeQueryCompiler
       .addAfter(new RemoveTakeDrop(translateTake = false), Phase.expandSums)
       .addBefore(new ProtectGroupBy, Phase.mergeToComprehensions)

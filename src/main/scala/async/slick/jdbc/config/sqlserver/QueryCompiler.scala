@@ -5,7 +5,7 @@ import slick.compiler._
 
 trait SQLServerQueryCompiler extends SqlQueryCompiler {
 
-  override lazy val capabilities: CommonCapabilities = new SQLServerCapabilities {}
+  override lazy val capabilities: BasicCapabilities = new SQLServerCapabilities {}
 
   override lazy val computeQueryCompiler: QueryCompiler = {
     (super.computeQueryCompiler

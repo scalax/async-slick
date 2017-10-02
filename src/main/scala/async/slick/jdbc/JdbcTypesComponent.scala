@@ -85,7 +85,6 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
     )
   }
 
-  //TODO 已经可以删除
   /*abstract class DriverJdbcType[@specialized T](implicit val classTag: ClassTag[T]) extends JdbcType[T] {
     def scalaType = ScalaBaseType[T]
     def sqlTypeName(sym: Option[FieldSymbol]): String = self.defaultSqlTypeName(this, sym)

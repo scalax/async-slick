@@ -6,7 +6,7 @@ import slick.ast._
 import slick.ast.TypeUtil._
 import slick.basic.Capability
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, DerbyCapabilities, DerbyQueryCompiler }
+import slick.async.jdbc.config.{ BasicCapabilities, DerbyCapabilities, DerbyQueryCompiler }
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
@@ -90,7 +90,7 @@ trait DerbyProfile extends JdbcProfile { self =>
     - JdbcCapabilities.supportsByte
     - RelationalCapabilities.repeat)*/
 
-  override lazy val capabilitiesContent: CommonCapabilities = new DerbyCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new DerbyCapabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -104,7 +104,7 @@ trait DerbyProfile extends JdbcProfile { self =>
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
-  override protected def computeQueryCompiler = new DerbyQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new DerbyQueryCompiler {}
   //super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
   override val columnTypes = new DerbyJdbcTypes {}
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state) {

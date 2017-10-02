@@ -3,18 +3,18 @@ package slick.async.jdbc
 import java.util.UUID
 
 import scala.concurrent.ExecutionContext
-import java.sql.{ Array => _, _ }
+import java.sql.{Array => _, _}
 
 import slick.SlickException
 import slick.ast._
 import slick.async.basic.BasicStreamingAction
-import slick.compiler.{ CompilerState, Phase }
+import slick.compiler.{CompilerState, Phase}
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, OracleCapabilities, OracleQueryCompiler }
-import slick.async.jdbc.meta.{ MColumn, MQName, MTable }
+import slick.async.jdbc.config.{BasicCapabilities, OracleCapabilities, OracleColumnOptions, OracleQueryCompiler}
+import slick.async.jdbc.meta.{MColumn, MQName, MTable}
 import slick.lifted._
 import slick.model.ForeignKeyAction
-import slick.relational.{ RelationalCapabilities, ResultConverter }
+import slick.relational.{RelationalCapabilities, ResultConverter}
 import slick.async.relational.RelationalProfile
 import slick.basic.Capability
 import slick.util.ConstArray
@@ -71,14 +71,19 @@ trait OracleProfile extends JdbcProfile { self =>
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
 
-  override lazy val capabilitiesContent: CommonCapabilities = new OracleCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new OracleCapabilities {}
 
-  trait ColumnOptions extends super.ColumnOptions {
+  /*trait ColumnOptions extends super.ColumnOptions {
     def AutoIncSequenceName(name: String) = OracleProfile.ColumnOption.AutoIncSequenceName(name)
     def AutoIncTriggerName(name: String) = OracleProfile.ColumnOption.AutoIncTriggerName(name)
   }
 
-  override val columnOptions: ColumnOptions = new ColumnOptions {}
+  override val columnOptions: ColumnOptions = new ColumnOptions {}*/
+  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
+    def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
+    override def tableProvider: RelationalProfile = self
+    override val O: OracleColumnOptions = new OracleColumnOptions { }
+  }
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {
@@ -103,7 +108,7 @@ trait OracleProfile extends JdbcProfile { self =>
     } yield mtables
   }
 
-  override protected def computeQueryCompiler = new OracleQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new OracleQueryCompiler {}
   /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       .replace(Phase.resolveZipJoinsRownumStyle)
       - Phase.fixRowNumberOrdering

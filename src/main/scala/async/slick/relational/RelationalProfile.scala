@@ -8,9 +8,9 @@ import slick.lifted.FunctionSymbolExtensionMethods._
 import slick.lifted._
 import slick.relational._
 import slick.async.basic.BasicProfile
-import slick.async.jdbc.config.RelationalQueryCompiler11
+import slick.async.jdbc.config.{ProfileTable, RelationalColumnOptions, RelationalQueryCompiler, RelationalQueryCompiler11}
 
-import scala.language.{ higherKinds, implicitConversions }
+import scala.language.{higherKinds, implicitConversions}
 import scala.reflect.ClassTag
 
 /**
@@ -57,7 +57,7 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
 
   final lazy val compiler = computeQueryCompiler
 
-  protected def computeQueryCompiler: QueryCompiler = new RelationalQueryCompiler11 {}.computeQueryCompiler
+  protected def computeQueryCompiler: RelationalQueryCompiler = new RelationalQueryCompiler { }
   /*{
     val base = QueryCompiler.standard
     val canJoinLeft = capabilities contains RelationalCapabilities.joinLeft
@@ -118,7 +118,7 @@ trait RelationalTableComponent { self: RelationalProfile =>
 
   def buildTableSchemaDescription(table: Table[_]): SchemaDescription
 
-  trait ColumnOptions {
+  /*trait ColumnOptions {
     val PrimaryKey = ColumnOption.PrimaryKey
     def Default[T](defaultValue: T) = RelationalProfile.ColumnOption.Default[T](defaultValue)
     val AutoInc = ColumnOption.AutoInc
@@ -126,9 +126,16 @@ trait RelationalTableComponent { self: RelationalProfile =>
     val Length = RelationalProfile.ColumnOption.Length
   }
 
-  val columnOptions: ColumnOptions = new ColumnOptions {}
+  val columnOptions: ColumnOptions = new ColumnOptions {}*/
 
-  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends AbstractTable[T](_tableTag, _schemaName, _tableName) { table =>
+  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends ProfileTable[T](_tableTag, _schemaName, _tableName) {
+    def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
+    override def tableProvider: RelationalProfile = self
+    override val O: RelationalColumnOptions = new RelationalColumnOptions { }
+  }
+
+  //TODO 准备删除
+  /*abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends AbstractTable[T](_tableTag, _schemaName, _tableName) { table =>
     final type TableElementType = T
 
     def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
@@ -161,7 +168,7 @@ trait RelationalTableComponent { self: RelationalProfile =>
         }) + "." + n
       }
     }
-  }
+  }*/
 }
 
 trait RelationalSequenceComponent { self: RelationalProfile =>

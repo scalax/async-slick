@@ -4,20 +4,28 @@ import scala.language.existentials
 import slick.SlickException
 import slick.ast._
 import slick.ast.Util.nodeToNodeOps
-import slick.async.jdbc.config.JdbcComponentCapabilities
-import slick.compiler.{ CodeGen, CompilerState, QueryCompiler }
+import slick.async.jdbc.config._
+import slick.compiler.{CodeGen, CompilerState, QueryCompiler}
 import slick.lifted._
-import slick.relational.{ CompiledMapping, ResultConverter }
+import slick.relational.{CompiledMapping, ResultConverter}
 import slick.async.relational.RelationalProfile
 import slick.async.sql.SqlProfile
 import slick.util._
 
 trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
+  val capabilitiesContent: BasicCapabilities
+  val sqlUtilsComponent: BasicSqlUtilsComponent
+
+  val crudCompiler: CrudCompiler = new CrudCompiler {
+    override val compilerContent = self.computeQueryCompiler
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+
   // Create the different builders -- these methods should be overridden by profiles as needed
   def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder //= new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
-  def createInsertBuilder(node: Insert): InsertBuilder = new InsertBuilder(node)
-  def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
+  //def createInsertBuilder(node: Insert): InsertBuilder = new InsertBuilder(node)
+  //def createUpsertBuilder(node: Insert): InsertBuilder = new UpsertBuilder(node)
   def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
   def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -52,19 +60,18 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     /** The compiled artifacts for 'update insert' statements. */
     lazy val updateInsert = compile(updateInsertCompiler)
 
-    //TODO 未做多样性工作(注释应该去掉)
     /** Build a list of columns and a matching `ResultConverter` for retrieving keys of inserted rows. */
     def buildReturnColumns(node: Node): (ConstArray[String], ResultConverter[JdbcResultConverterDomain, _], Boolean) = {
-      //if (!capabilities.contains(JdbcCapabilities.returnInsertKey))
-      //throw new SlickException("This DBMS does not allow returning columns from INSERT statements")
+      if (!capabilitiesContent.capabilities.contains(JdbcCapabilities.returnInsertKey))
+        throw new SlickException("This DBMS does not allow returning columns from INSERT statements")
       val ResultSetMapping(_, CompiledStatement(_, ibr: InsertBuilderResult, _), CompiledMapping(rconv, _)) =
         forceInsertCompiler.run(node).tree
       if (ibr.table.baseIdentity != standardInsert.table.baseIdentity)
         throw new SlickException("Returned key columns must be from same table as inserted columns (" +
           ibr.table.baseIdentity + " != " + standardInsert.table.baseIdentity + ")")
       val returnOther = ibr.fields.length > 1 || !ibr.fields.head.options.contains(ColumnOption.AutoInc)
-      //if (!capabilities.contains(JdbcCapabilities.returnInsertOther) && returnOther)
-      //throw new SlickException("This DBMS allows only a single column to be returned from an INSERT, and that column must be an AutoInc column.")
+      if (!capabilitiesContent.capabilities.contains(JdbcCapabilities.returnInsertOther) && returnOther)
+        throw new SlickException("This DBMS allows only a single column to be returned from an INSERT, and that column must be an AutoInc column.")
       (ibr.fields.map(_.name), rconv.asInstanceOf[ResultConverter[JdbcResultConverterDomain, _]], returnOther)
     }
   }

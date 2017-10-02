@@ -52,6 +52,7 @@ trait JdbcMappingCompilerComponent { self: JdbcProfile =>
     }
   }
 
+  //TODO 准备删除
   /** Code generator phase for queries on JdbcProfile. */
   class JdbcCodeGen(f: QueryBuilder => SQLBuilder.Result) extends CodeGen {
     def compileServerSideAndMapping(serverSide: Node, mapping: Option[Node], state: CompilerState) = {
@@ -61,6 +62,7 @@ trait JdbcMappingCompilerComponent { self: JdbcProfile =>
     }
   }
 
+  //TODO 准备删除
   /** Code generator phase for inserts on JdbcProfile. */
   class JdbcInsertCodeGen(f: Insert => InsertBuilder) extends CodeGen {
     def compileServerSideAndMapping(serverSide: Node, mapping: Option[Node], state: CompilerState) = {

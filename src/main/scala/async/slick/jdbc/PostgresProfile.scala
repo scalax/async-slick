@@ -8,7 +8,7 @@ import slick.ast._
 import slick.basic.Capability
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, PostgresCapabilities, PostgresQueryCompiler }
+import slick.async.jdbc.config.{ BasicCapabilities, PostgresCapabilities, PostgresQueryCompiler }
 import slick.async.jdbc.meta.{ MColumn, MIndexInfo, MTable }
 import slick.async.relational.RelationalProfile
 import slick.util.ConstArray
@@ -55,7 +55,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     - JdbcCapabilities.nullableNoDefault
     - JdbcCapabilities.supportsByte)*/
 
-  override lazy val capabilitiesContent: CommonCapabilities = new PostgresCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new PostgresCapabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -139,7 +139,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
   override val columnTypes = new JdbcTypes
-  override protected def computeQueryCompiler = new PostgresQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new PostgresQueryCompiler {}
   //super.computeQueryCompiler - Phase.rewriteDistinct
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent

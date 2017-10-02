@@ -10,7 +10,7 @@ import slick.SlickException
 import slick.basic.Capability
 import slick.async.dbio._
 import slick.ast._
-import slick.async.jdbc.config.{ CommonCapabilities, SQLiteCapabilities }
+import slick.async.jdbc.config.{ BasicCapabilities, SQLiteCapabilities }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
@@ -92,7 +92,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     - JdbcCapabilities.distinguishesIntTypes
     - JdbcCapabilities.forUpdate)*/
 
-  override lazy val capabilitiesContent: CommonCapabilities = new SQLiteCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new SQLiteCapabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {

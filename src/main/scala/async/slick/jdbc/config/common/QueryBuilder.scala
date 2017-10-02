@@ -10,14 +10,14 @@ import slick.relational.RelationalCapabilities
 import slick.util._
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.ast.Util.nodeToNodeOps
-import slick.async.jdbc.config.CommonCapabilities
+import slick.async.jdbc.config.BasicCapabilities
 //import slick.basic.Capability
 
 import scala.collection.mutable.HashMap
 
 abstract class QueryBuilder(val tree: Node, val state: CompilerState) extends SqlUtilsComponent { queryBuilder =>
 
-  val commonCapabilities: CommonCapabilities
+  val commonCapabilities: BasicCapabilities
 
   // Immutable config options (to be overridden by subclasses)
   protected val supportsTuples = true

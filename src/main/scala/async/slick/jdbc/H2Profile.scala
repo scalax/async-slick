@@ -3,14 +3,10 @@ package slick.async.jdbc
 import scala.concurrent.ExecutionContext
 import java.util.UUID
 
-import slick.basic.Capability
-import slick.relational.RelationalCapabilities
 import slick.async.relational.RelationalProfile
-import slick.sql.SqlCapabilities
 import slick.ast._
-import slick.async.jdbc.config.{ CommonCapabilities, H2Capabilities, H2QueryCompiler }
-import slick.util.MacroSupport.macroSupportInterpolation
-import slick.compiler.{ CompilerState, Phase }
+import slick.async.jdbc.config.{ BasicCapabilities, H2Capabilities, H2QueryCompiler }
+import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MTable }
 
 /**
@@ -49,7 +45,7 @@ trait H2Profile extends JdbcProfile { self =>
     - JdbcCapabilities.insertOrUpdate
     - RelationalCapabilities.reverse)*/
 
-  override lazy val capabilitiesContent: CommonCapabilities = new H2Capabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new H2Capabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
@@ -75,7 +71,7 @@ trait H2Profile extends JdbcProfile { self =>
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
   override val columnTypes = new JdbcTypes
-  override protected def computeQueryCompiler = new H2QueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new H2QueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent

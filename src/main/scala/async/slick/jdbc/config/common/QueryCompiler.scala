@@ -3,9 +3,9 @@ package slick.async.jdbc.config
 import slick.compiler.{ EmulateOuterJoins, Phase, QueryCompiler }
 import slick.relational.RelationalCapabilities
 
-trait RelationalQueryCompiler11 {
+trait RelationalQueryCompiler {
 
-  def capabilities: CommonCapabilities = new RelationalComponentCapabilities {}
+  def capabilities: BasicCapabilities = new RelationalComponentCapabilities {}
 
   def computeQueryCompiler: QueryCompiler = {
     val base = QueryCompiler.standard
@@ -18,9 +18,9 @@ trait RelationalQueryCompiler11 {
 
 }
 
-trait SqlQueryCompiler extends RelationalQueryCompiler11 {
+trait SqlQueryCompiler extends RelationalQueryCompiler {
 
-  override def capabilities: CommonCapabilities = new SqlComponentCapabilities {}
+  override def capabilities: BasicCapabilities = new SqlComponentCapabilities {}
 
   override def computeQueryCompiler: QueryCompiler = {
     super.computeQueryCompiler ++ QueryCompiler.sqlPhases

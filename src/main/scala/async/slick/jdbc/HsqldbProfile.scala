@@ -1,21 +1,14 @@
 
 package slick.async.jdbc
 
-import java.sql.Types
-
 import scala.concurrent.ExecutionContext
-import slick.SlickException
 import slick.ast._
-import slick.basic.Capability
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ CommonCapabilities, HsqldbCapabilities, HsqldbQueryCompiler }
+import slick.async.jdbc.config.{ BasicCapabilities, HsqldbCapabilities, HsqldbQueryCompiler }
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
-import slick.sql.SqlCapabilities
 import slick.async.relational.RelationalProfile
-import slick.util.ConstArray
-import slick.util.MacroSupport.macroSupportInterpolation
 
 /**
  * Slick profile for <a href="http://www.hsqldb.org/">HyperSQL</a>
@@ -48,7 +41,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
     }
   }
 
-  override lazy val capabilitiesContent: CommonCapabilities = new HsqldbCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new HsqldbCapabilities {}
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
@@ -56,7 +49,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
-  override protected def computeQueryCompiler = new HsqldbQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new HsqldbQueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
   override val columnTypes = new JdbcTypes
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {

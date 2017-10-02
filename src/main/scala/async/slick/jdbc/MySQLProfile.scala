@@ -7,7 +7,7 @@ import slick.SlickException
 import slick.ast._
 import slick.ast.Util._
 import slick.ast.TypeUtil._
-import slick.async.jdbc.config.{ CommonCapabilities, MysqlCapabilities, MysqlQueryCompiler }
+import slick.async.jdbc.config.{ BasicCapabilities, MysqlCapabilities, MysqlQueryCompiler }
 import slick.basic.Capability
 import slick.compiler.{ CompilerState, Phase, ResolveZipJoins }
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
@@ -74,7 +74,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     super.loadProfileConfig
   }
 
-  override lazy val capabilitiesContent: CommonCapabilities = new MysqlCapabilities {}
+  override lazy val capabilitiesContent: BasicCapabilities = new MysqlCapabilities {}
 
   class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createPrimaryKeyBuilder(tableBuilder: TableBuilder, meta: Seq[MPrimaryKey]): PrimaryKeyBuilder = new PrimaryKeyBuilder(tableBuilder, meta) {
@@ -121,7 +121,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
   override val columnTypes = new MySQLJdbcTypes {}
-  override protected def computeQueryCompiler = new MysqlQueryCompiler {}.computeQueryCompiler
+  override protected def computeQueryCompiler = new MysqlQueryCompiler {}
   //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
     override lazy val commonCapabilities = profile.capabilitiesContent
@@ -131,7 +131,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
-  override def quoteIdentifier(id: String) = '`' + id + '`'
+  //override def quoteIdentifier(id: String) = '`' + id + '`'
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
     case java.sql.Types.VARCHAR =>

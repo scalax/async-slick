@@ -4,7 +4,7 @@ import scala.collection.mutable.Builder
 import scala.language.{ higherKinds, implicitConversions }
 import slick.ast._
 import slick.ast.TypeUtil.:@
-import slick.async.jdbc.config.CommonCapabilities
+import slick.async.jdbc.config.BasicCapabilities
 import slick.compiler.{ InsertCompiler, Phase, QueryCompiler }
 import slick.lifted._
 import slick.async.relational.RelationalProfile
@@ -28,7 +28,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
 
   //override protected def computeCapabilities = super.computeCapabilities ++ JdbcCapabilities.all
 
-  val capabilitiesContent: CommonCapabilities
+  override val capabilitiesContent: BasicCapabilities
 
   lazy val queryCompiler = compiler + new JdbcCodeGen(_.buildSelect)
   lazy val updateCompiler = compiler + new JdbcCodeGen(_.buildUpdate)

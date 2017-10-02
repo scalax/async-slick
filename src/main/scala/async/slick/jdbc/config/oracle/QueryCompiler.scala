@@ -6,7 +6,7 @@ import slick.util.ConstArray
 
 trait OracleQueryCompiler extends SqlQueryCompiler {
 
-  override lazy val capabilities: CommonCapabilities = new OracleCapabilities {}
+  override lazy val capabilities: BasicCapabilities = new OracleCapabilities {}
 
   override lazy val computeQueryCompiler: QueryCompiler = {
     (super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)

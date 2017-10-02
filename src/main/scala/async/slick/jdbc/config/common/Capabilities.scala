@@ -5,12 +5,16 @@ import slick.jdbc.JdbcCapabilities
 import slick.relational.RelationalCapabilities
 import slick.sql.SqlCapabilities
 
-trait CommonCapabilities {
+trait BasicCapabilities {
+  def capabilities: Set[Capability]
+}
+
+trait CommonCapabilities extends BasicCapabilities {
   /**
    * The capabilities supported by this profile. This can be used to query at
    * runtime whether a specific feature is supported.
    */
-  final lazy val capabilities: Set[Capability] = computeCapabilities
+  override final lazy val capabilities: Set[Capability] = computeCapabilities
   /** Compute the capabilities. This should be overridden in subclasses as needed. */
   protected def computeCapabilities: Set[Capability] = Set.empty
 }
