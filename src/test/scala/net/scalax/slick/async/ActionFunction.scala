@@ -83,7 +83,7 @@ object ActionFunctionHelper {
       "slick.query.result" -> new QueryRoute[SessionConn] {
         def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): SessionConn[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlcikQueryResult[_, Nothing]]
-          val invoker = new jdbcProfile.QueryInvokerImpl(jdbcProfile.queryCompiler.run(wrap.query.toNode).tree, null, null)
+          val invoker = new jdbcProfile.QueryInvokerImpl(jdbcProfile.crudCompiler.queryCompiler.run(wrap.query.toNode).tree, null, null)
           new SessionConn[F, G] {
             override def withSession(implicit session: JdbcBackend#Session): F = {
               invoker.results(0)(session).right.get.toList.asInstanceOf[F]
@@ -94,7 +94,7 @@ object ActionFunctionHelper {
       "slick.query.update" -> new QueryRoute[SessionConn] {
         def apply[F, G <: NoStream](queryWrap: AsyncQuery[F, G]): SessionConn[F, G] = {
           val wrap = queryWrap.asInstanceOf[SlickQueryUpdate]
-          val tree = jdbcProfile.updateCompiler.run(wrap.query.toNode).tree
+          val tree = jdbcProfile.crudCompiler.updateCompiler.run(wrap.query.toNode).tree
 
           class BlockingJdbcActionContext(s: JdbcBackend#Session) extends jdbcProfile.backend.JdbcActionContext {
             val useSameThread = true

@@ -17,17 +17,18 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   val capabilitiesContent: BasicCapabilities
   val sqlUtilsComponent: BasicSqlUtilsComponent = new BasicSqlUtilsComponent {}
 
-  lazy val crudCompiler: CrudCompiler = new CrudCompiler {
+  val crudCompiler: CrudCompiler /*= new CrudCompiler {
     override lazy val compilerContent = self.computeQueryCompiler
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+    override lazy val capabilitiesContent = self.capabilitiesContent
+  }*/
 
   // Create the different builders -- these methods should be overridden by profiles as needed
-  def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder //= new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
+  //def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder //= new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
   //def createInsertBuilder(node: Insert): InsertBuilder = ??? //= crudCompiler.createInsertBuilder(node)
   //def createUpsertBuilder(node: Insert): InsertBuilder = ??? //= crudCompiler.createUpsertBuilder(node)
-  def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
-  def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
+  //def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
+  //def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
   def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
@@ -46,26 +47,26 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
     }
 
     /** The compiled artifacts for standard insert statements. */
-    lazy val standardInsert = compile(insertCompiler)
+    lazy val standardInsert = compile(crudCompiler.insertCompiler)
 
     /** The compiled artifacts for forced insert statements. */
-    lazy val forceInsert = compile(forceInsertCompiler)
+    lazy val forceInsert = compile(crudCompiler.forceInsertCompiler)
 
     /** The compiled artifacts for upsert statements. */
-    lazy val upsert = compile(upsertCompiler)
+    lazy val upsert = compile(crudCompiler.upsertCompiler)
 
     /** The compiled artifacts for 'check insert' statements. */
-    lazy val checkInsert = compile(checkInsertCompiler)
+    lazy val checkInsert = compile(crudCompiler.checkInsertCompiler)
 
     /** The compiled artifacts for 'update insert' statements. */
-    lazy val updateInsert = compile(updateInsertCompiler)
+    lazy val updateInsert = compile(crudCompiler.updateInsertCompiler)
 
     /** Build a list of columns and a matching `ResultConverter` for retrieving keys of inserted rows. */
     def buildReturnColumns(node: Node): (ConstArray[String], ResultConverter[JdbcResultConverterDomain, _], Boolean) = {
       if (!capabilitiesContent.capabilities.contains(JdbcCapabilities.returnInsertKey))
         throw new SlickException("This DBMS does not allow returning columns from INSERT statements")
       val ResultSetMapping(_, CompiledStatement(_, ibr: InsertBuilderResult, _), CompiledMapping(rconv, _)) =
-        forceInsertCompiler.run(node).tree
+        crudCompiler.forceInsertCompiler.run(node).tree
       if (ibr.table.baseIdentity != standardInsert.table.baseIdentity)
         throw new SlickException("Returned key columns must be from same table as inserted columns (" +
           ibr.table.baseIdentity + " != " + standardInsert.table.baseIdentity + ")")
@@ -95,8 +96,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
    * The table name for scalar selects (e.g. "select 42 from DUAL;"), or `None` for
    * scalar selects without a FROM clause ("select 42;").
    */
-  //TODO 目前为了剥离 QueryBuilder 未实现
-  //val scalarFrom: Option[String] = None
+  val scalarFrom: Option[String] = None
 
   //class QueryBuilder(tree: Node, state: CompilerState) extends slick.async.jdbc.QueryBuilder(tree, state)
 
@@ -586,18 +586,18 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
    * primary keys supplied to an INSERT operation. Used by the insertOrUpdate emulation
    * on databases that don't support this in a single server-side statement.
    */
-  class CheckInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+  /*class CheckInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
 
     override def buildInsert: InsertBuilderResult =
       new InsertBuilderResult(table, pkNames.map(n => s"$n=?").mkString(s"select 1 from $tableName where ", " and ", ""), ConstArray.from(pkSyms))
-  }
+  }*/
 
   /**
    * Builder for UPDATE statements used as part of an insertOrUpdate operation
    * on databases that don't support this in a single server-side statement.
    */
-  class UpdateInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+  /*class UpdateInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
 
     override def buildInsert: InsertBuilderResult =
@@ -608,7 +608,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
       )
 
     override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms)
-  }
+  }*/
 
   /** Builder for various DDL statements. */
   class TableDDLBuilder(val table: RelationalTableComponent#Table[_]) { self =>

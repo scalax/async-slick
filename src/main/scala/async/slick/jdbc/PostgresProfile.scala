@@ -135,6 +135,8 @@ trait PostgresProfile extends JdbcProfile { self =>
   override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
     override lazy val compilerContent = self.computeQueryCompiler
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
@@ -146,10 +148,10 @@ trait PostgresProfile extends JdbcProfile { self =>
   override val columnTypes = new JdbcTypes
   override protected def computeQueryCompiler = new PostgresQueryCompiler {}
   //super.computeQueryCompiler - Phase.rewriteDistinct
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
+  /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  }*/
   /*override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/

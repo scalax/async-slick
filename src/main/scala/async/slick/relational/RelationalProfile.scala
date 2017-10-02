@@ -24,8 +24,8 @@ trait RelationalProfile extends BasicProfile with RelationalTableComponent
     with RelationalSequenceComponent with RelationalTypesComponent
     with RelationalActionComponent { self: RelationalProfile =>
 
-  @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
-  override val profile: RelationalProfile = this
+  //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
+  //override val profile: RelationalProfile = this
 
   type Backend <: RelationalBackend
 

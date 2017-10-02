@@ -7,15 +7,16 @@ import slick.async.dbio._
 import slick.lifted._
 import slick.util.GlobalConfig
 import com.typesafe.config.Config
+import slick.async.jdbc.config.CrudCompiler
 import slick.async.sql.SqlProfile
 import slick.basic.Capability
 
 /** The basic functionality that has to be implemented by all profiles. */
-trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
+trait BasicProfile extends BasicActionComponent { self =>
 
   /** The external interface of this profile which defines the API. */
-  @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
-  val profile: BasicProfile = this
+  //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
+  //val profile: BasicProfile = this
 
   /** The back-end type required by this profile */
   type Backend <: BasicBackend
@@ -45,6 +46,8 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
 
   }*/
 
+  val crudCompiler: CrudCompiler
+
   trait API extends slick.async.lifted.LiftedAliases with slick.async.dbio.DBIOAliases with ExtensionMethodConversions {
     type Database = Backend#Database
     val Database = backend.Database
@@ -52,14 +55,14 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
     type SlickException = slick.SlickException
 
     implicit val slickProfile: self.type = self
-    @deprecated("User `slickProfile` instead of `slickDriver`", "3.2")
-    val slickDriver: self.type = slickProfile
+    //@deprecated("User `slickProfile` instead of `slickDriver`", "3.2")
+    //val slickDriver: self.type = slickProfile
 
     implicit final def anyToShapedValue[T, U](value: T)(implicit shape: Shape[_ <: FlatShapeLevel, T, U, _]): ShapedValue[T, U] =
       new ShapedValue[T, U](value, shape)
 
     implicit def streamableQueryActionExtensionMethods[U, C[_]](q: Query[_, U, C]): StreamingQueryActionExtensionMethods[C[U], U] =
-      createStreamingQueryActionExtensionMethods[C[U], U](queryCompiler.run(q.toNode).tree, ())
+      createStreamingQueryActionExtensionMethods[C[U], U](crudCompiler.queryCompiler.run(q.toNode).tree, ())
     implicit def runnableCompiledQueryActionExtensionMethods[RU](c: RunnableCompiled[_, RU]): QueryActionExtensionMethods[RU, NoStream] =
       createQueryActionExtensionMethods[RU, NoStream](c.compiledQuery, c.param)
     implicit def streamableCompiledQueryActionExtensionMethods[RU, EU](c: StreamableCompiled[_, RU, EU]): StreamingQueryActionExtensionMethods[RU, EU] =
@@ -68,7 +71,7 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
     implicit def streamableAppliedCompiledFunctionActionExtensionMethods[R, RU, EU, C[_]](c: AppliedCompiledFunction[_, Query[R, EU, C], RU]): StreamingQueryActionExtensionMethods[RU, EU] =
       createStreamingQueryActionExtensionMethods[RU, EU](c.compiledQuery, c.param)
     implicit def recordQueryActionExtensionMethods[M, R](q: M)(implicit shape: Shape[_ <: FlatShapeLevel, M, R, _]): QueryActionExtensionMethods[R, NoStream] =
-      createQueryActionExtensionMethods[R, NoStream](queryCompiler.run(shape.toNode(q)).tree, ())
+      createQueryActionExtensionMethods[R, NoStream](crudCompiler.queryCompiler.run(shape.toNode(q)).tree, ())
   }
 
   /**
@@ -79,16 +82,16 @@ trait BasicProfile extends BasicActionComponent { self: BasicProfile =>
   val api: API
 
   /** The compiler used for queries */
-  def queryCompiler: QueryCompiler
+  //def queryCompiler: QueryCompiler
 
   /** The compiler used for updates */
-  def updateCompiler: QueryCompiler
+  //def updateCompiler: QueryCompiler
 
   /** The compiler used for deleting data */
-  def deleteCompiler: QueryCompiler
+  //def deleteCompiler: QueryCompiler
 
   /** The compiler used for inserting data */
-  def insertCompiler: QueryCompiler
+  //def insertCompiler: QueryCompiler
 
   /**
    * The type of a (partially) compiled AST for Insert operations. Unlike

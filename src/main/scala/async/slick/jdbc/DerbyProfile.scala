@@ -111,11 +111,13 @@ trait DerbyProfile extends JdbcProfile { self =>
   override lazy val crudCompiler = new DerbyCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override val compilerContent = self.computeQueryCompiler
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state) {
+  /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -127,8 +129,7 @@ trait DerbyProfile extends JdbcProfile { self =>
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  //TODO 目前为了剥离 QueryBuilder 未实现
-  //override val scalarFrom = Some("sysibm.sysdummy1")
+  override val scalarFrom = Some("sysibm.sysdummy1")
 
   /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")

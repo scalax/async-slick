@@ -55,19 +55,20 @@ trait HsqldbProfile extends JdbcProfile { self =>
   override lazy val crudCompiler = new HsqldbCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override val compilerContent = self.computeQueryCompiler
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {
+  /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
 
-  //TODO 目前为了剥离 QueryBuilder 未实现
-  //override val scalarFrom = Some("(VALUES (0))")
+  override val scalarFrom = Some("(VALUES (0))")
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
     case java.sql.Types.VARCHAR =>

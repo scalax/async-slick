@@ -121,11 +121,13 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
     override lazy val compilerContent = profile.computeQueryCompiler
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
+    override lazy val capabilitiesContent = profile.capabilitiesContent
+    override val scalarFrom = profile.scalarFrom
   }
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
+  /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
     override lazy val commonCapabilities = profile.capabilitiesContent
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
-  }
+  }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)

@@ -14,8 +14,8 @@ import slick.util.DumpInfo
 /** Abstract profile for SQL-based databases. */
 trait SqlProfile extends RelationalProfile with SqlTableComponent with SqlActionComponent /* internal:*/ /*with SqlUtilsComponent*/ {
 
-  @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
-  override val profile: SqlProfile = this
+  //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
+  //override val profile: SqlProfile = this
 
   override protected def computeQueryCompiler: RelationalQueryCompiler = new SqlQueryCompiler {}
   //super.computeQueryCompiler ++ QueryCompiler.sqlPhases

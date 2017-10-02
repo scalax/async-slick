@@ -73,13 +73,15 @@ trait H2Profile extends JdbcProfile { self =>
   override val columnTypes = new JdbcTypes
   override protected def computeQueryCompiler = new H2QueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state) {
+  /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  }*/
   override lazy val crudCompiler = new H2CrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override val compilerContent = self.computeQueryCompiler
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =

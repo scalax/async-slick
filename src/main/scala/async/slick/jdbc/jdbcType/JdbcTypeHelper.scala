@@ -35,9 +35,7 @@ object JdbcTypeHelper {
     if (option) v.asInstanceOf[Option[Any]].fold("null")(ti.valueToSQLLiteral)
     else ti.valueToSQLLiteral(v)
   }
-
-  val scalarFrom: Option[String] = None
-
+  //val scalarFrom: Option[String] = None
 }
 
 trait JdbcTypes {

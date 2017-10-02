@@ -156,13 +156,12 @@ trait SQLiteProfile extends JdbcProfile { self =>
       .map(_.filter(_.name.name.toLowerCase != "sqlite_sequence"))
 
   override val columnTypes = new JdbcTypes
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLiteQueryBuilder(n, state) {
-    override lazy val commonCapabilities = self.capabilitiesContent
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+
   override lazy val crudCompiler = new SQLiteCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override val compilerContent = self.computeQueryCompiler
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)

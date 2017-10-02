@@ -18,6 +18,7 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) { queryBui
 
   val commonCapabilities: BasicCapabilities
   val sqlUtilsComponent: BasicSqlUtilsComponent
+  val scalarFrom: Option[String]
 
   // Immutable config options (to be overridden by subclasses)
   protected val supportsTuples = true
@@ -135,7 +136,7 @@ abstract class QueryBuilder(val tree: Node, val state: CompilerState) { queryBui
 
   protected def buildFromClause(from: Seq[(TermSymbol, Node)]) = building(FromPart) {
     from match {
-      case Nil | Seq((_, Pure(ProductNode(ConstArray()), _))) => JdbcTypeHelper.scalarFrom.foreach { s => b"\nfrom $s" }
+      case Nil | Seq((_, Pure(ProductNode(ConstArray()), _))) => scalarFrom.foreach { s => b"\nfrom $s" }
       case from =>
         b"\nfrom "
         b.sep(from, ", ") { case (sym, n) => buildFrom(n, if (Some(sym) == currentUniqueFrom) None else Some(sym)) }

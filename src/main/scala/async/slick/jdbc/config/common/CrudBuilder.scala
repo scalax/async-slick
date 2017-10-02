@@ -1,7 +1,7 @@
 package slick.async.jdbc.config
 
 import slick.ast._
-import slick.async.jdbc.{ InsertBuilderResult, JdbcTypeHelper }
+import slick.async.jdbc.{ InsertBuilderResult, JdbcTypeHelper, QueryBuilder }
 import slick.compiler._
 import slick.util.{ ConstArray, SQLBuilder }
 import slick.ast.Util.nodeToNodeOps
@@ -52,6 +52,7 @@ abstract class InsertBuilder(val ins: Insert) {
 
 abstract class UpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
   val sqlUtilsComponent: BasicSqlUtilsComponent
+  val scalarFrom: Option[String]
 
   /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
            here we let table ddl to help us ensure this. */
@@ -69,7 +70,7 @@ abstract class UpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
   override def buildInsert: InsertBuilderResult = {
     val start = buildMergeStart
     val end = buildMergeEnd
-    val paramSel = "select " + allNames.map(n => "? as " + n).iterator.mkString(",") + JdbcTypeHelper.scalarFrom.map(n => " from " + n).getOrElse("")
+    val paramSel = "select " + allNames.map(n => "? as " + n).iterator.mkString(",") + scalarFrom.map(n => " from " + n).getOrElse("")
     // We'd need a way to alias the column names at the top level in order to support merges from a source Query
     new InsertBuilderResult(table, start + paramSel + end, syms)
   }
@@ -83,4 +84,50 @@ abstract class UpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     val cond = pkNames.map(n => s"t.$n=s.$n").mkString(" and ")
     s") s on ($cond) when matched then update set $updateCols when not matched then insert ($insertCols) values ($insertVals)"
   }
+}
+
+/** Code generator phase for queries on JdbcProfile. */
+abstract class JdbcCodeGen(f: QueryBuilder => SQLBuilder.Result) extends CodeGen {
+  val crudCompiler: CrudCompiler
+  val mappingCompiler: MappingCompiler
+  def compileServerSideAndMapping(serverSide: Node, mapping: Option[Node], state: CompilerState) = {
+    val (tree, tpe) = treeAndType(serverSide)
+    val sbr = f(crudCompiler.createQueryBuilder(tree, state))
+    (CompiledStatement(sbr.sql, sbr, tpe).infer(), mapping.map(mappingCompiler.compileMapping))
+  }
+}
+
+/** Code generator phase for inserts on JdbcProfile. */
+abstract class JdbcInsertCodeGen(f: Insert => InsertBuilder) extends CodeGen {
+  val mappingCompiler: MappingCompiler
+  def compileServerSideAndMapping(serverSide: Node, mapping: Option[Node], state: CompilerState) = {
+    val ib = f(serverSide.asInstanceOf[Insert])
+    val ibr = ib.buildInsert
+    (CompiledStatement(ibr.sql, ibr, serverSide.nodeType).infer(), mapping.map(n => mappingCompiler.compileMapping(ib.transformMapping(n))))
+  }
+}
+
+/**
+ * Builder for SELECT statements that can be used to check for the existing of
+ * primary keys supplied to an INSERT operation. Used by the insertOrUpdate emulation
+ * on databases that don't support this in a single server-side statement.
+ */
+abstract class CheckInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+  override def buildInsert: InsertBuilderResult =
+    new InsertBuilderResult(table, pkNames.map(n => s"$n=?").mkString(s"select 1 from $tableName where ", " and ", ""), ConstArray.from(pkSyms))
+}
+
+/**
+ * Builder for UPDATE statements used as part of an insertOrUpdate operation
+ * on databases that don't support this in a single server-side statement.
+ */
+abstract class UpdateInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+  override def buildInsert: InsertBuilderResult =
+    new InsertBuilderResult(
+      table,
+      "update " + tableName + " set " + softNames.map(n => s"$n=?").mkString(",") + " where " + pkNames.map(n => s"$n=?").mkString(" and "),
+      ConstArray.from(softSyms ++ pkSyms)
+    )
+
+  override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms)
 }

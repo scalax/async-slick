@@ -16,8 +16,8 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
     with JdbcInvokerComponent with JdbcTypesComponent with JdbcModelComponent
     /* internal: */ with JdbcStatementBuilderComponent with JdbcMappingCompilerComponent {
 
-  @deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
-  override val profile: JdbcProfile = this
+  //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
+  //override val profile: JdbcProfile = this
 
   type Backend = JdbcBackend
   val backend: Backend = JdbcBackend
@@ -30,14 +30,14 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
 
   override val capabilitiesContent: BasicCapabilities
 
-  lazy val queryCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildSelect)
-  lazy val updateCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildUpdate)
-  lazy val deleteCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildDelete)
-  lazy val insertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.NonAutoInc), new JdbcInsertCodeGen(crudCompiler.createInsertBuilder))
-  lazy val forceInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(crudCompiler.createInsertBuilder))
-  lazy val upsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(crudCompiler.createUpsertBuilder))
-  lazy val checkInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.PrimaryKeys), new JdbcInsertCodeGen(createCheckInsertBuilder))
-  lazy val updateInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(createUpdateInsertBuilder))
+  //lazy val queryCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildSelect)
+  //lazy val updateCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildUpdate)
+  //lazy val deleteCompiler = compiler.computeQueryCompiler + new JdbcCodeGen(_.buildDelete)
+  //lazy val insertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.NonAutoInc), new JdbcInsertCodeGen(crudCompiler.createInsertBuilder))
+  //lazy val forceInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(crudCompiler.createInsertBuilder))
+  //lazy val upsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(crudCompiler.createUpsertBuilder))
+  //lazy val checkInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.PrimaryKeys), new JdbcInsertCodeGen(createCheckInsertBuilder))
+  //lazy val updateInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(createUpdateInsertBuilder))
   def compileInsert(tree: Node) = new JdbcCompiledInsert(tree)
   type CompiledInsert = JdbcCompiledInsert
 
@@ -46,7 +46,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
 
   trait LowPriorityAPI {
     implicit def queryUpdateActionExtensionMethods[U, C[_]](q: Query[_, U, C]): UpdateActionExtensionMethodsImpl[U] =
-      createUpdateActionExtensionMethods(updateCompiler.run(q.toNode).tree, ())
+      createUpdateActionExtensionMethods(crudCompiler.updateCompiler.run(q.toNode).tree, ())
   }
 
   trait API extends LowPriorityAPI with super.API with ImplicitColumnTypes {
@@ -54,7 +54,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
     val SimpleDBIO = SimpleJdbcAction
 
     implicit def queryDeleteActionExtensionMethods[C[_]](q: Query[_ <: RelationalProfile#Table[_], _, C]): DeleteActionExtensionMethods =
-      createDeleteActionExtensionMethods(deleteCompiler.run(q.toNode).tree, ())
+      createDeleteActionExtensionMethods(crudCompiler.deleteCompiler.run(q.toNode).tree, ())
     implicit def runnableCompiledDeleteActionExtensionMethods[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): DeleteActionExtensionMethods =
       createDeleteActionExtensionMethods(c.compiledDelete, c.param)
 

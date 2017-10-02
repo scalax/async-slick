@@ -464,7 +464,7 @@ trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
 
   protected abstract class InsertActionComposerImpl[U](val compiled: CompiledInsert) extends InsertActionComposer[U] {
     protected[this] def buildQueryBasedInsert[TT, C[_]](query: Query[TT, U, C]): SQLBuilder.Result =
-      compiled.forceInsert.ibr.buildInsert(queryCompiler.run(query.toNode).tree)
+      compiled.forceInsert.ibr.buildInsert(crudCompiler.queryCompiler.run(query.toNode).tree)
 
     protected[this] def buildQueryBasedInsert[TT, C[_]](compiledQuery: CompiledStreamingExecutable[Query[TT, U, C], _, _]): SQLBuilder.Result =
       compiled.forceInsert.ibr.buildInsert(compiledQuery.compiledQuery)

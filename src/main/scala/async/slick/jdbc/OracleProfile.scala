@@ -9,7 +9,7 @@ import slick.SlickException
 import slick.ast._
 import slick.compiler.CompilerState
 import slick.async.dbio._
-import slick.async.jdbc.config._
+import slick.async.jdbc.config.{ MappingCompiler, _ }
 import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
 import slick.model.ForeignKeyAction
@@ -113,12 +113,13 @@ trait OracleProfile extends JdbcProfile { self =>
   override lazy val crudCompiler: CrudCompiler = new OracleCrudCompiler {
     override lazy val compilerContent = self.computeQueryCompiler
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
-
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state) {
+  /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -139,8 +140,7 @@ trait OracleProfile extends JdbcProfile { self =>
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  //TODO 目前为了剥离 QueryBuilder 未实现
-  //override val scalarFrom = Some("sys.dual")
+  override val scalarFrom = Some("sys.dual")
 
   /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val supportsTuples = false
@@ -366,8 +366,9 @@ trait OracleProfile extends JdbcProfile { self =>
         for (s <- sql) ctx.session.withStatement()(_.execute(s))
     }
   }
+  //override lazy val mappingCompiler: MappingCompiler = new OracleMappingCompiler {}
 
-  override def createOptionResultConverter[T](ti: JdbcType[T], idx: Int): ResultConverter[JdbcResultConverterDomain, Option[T]] =
+  /*override def createOptionResultConverter[T](ti: JdbcType[T], idx: Int): ResultConverter[JdbcResultConverterDomain, Option[T]] =
     if (ti.scalaType == ScalaBaseType.stringType)
       (new OptionResultConverter[String](ti.asInstanceOf[JdbcType[String]], idx) {
         override def read(pr: ResultSet) = {
@@ -375,7 +376,7 @@ trait OracleProfile extends JdbcProfile { self =>
           if ((v eq null) || v.length == 0) None else Some(v)
         }
       }).asInstanceOf[ResultConverter[JdbcResultConverterDomain, Option[T]]]
-    else super.createOptionResultConverter(ti, idx)
+    else super.createOptionResultConverter(ti, idx)*/
 
   // Does not work to get around the ORA-00904 issue when returning columns
   // with lower-case names
