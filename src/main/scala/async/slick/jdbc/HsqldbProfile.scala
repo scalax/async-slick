@@ -5,7 +5,7 @@ import scala.concurrent.ExecutionContext
 import slick.ast._
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ BasicCapabilities, HsqldbCapabilities, HsqldbQueryCompiler }
+import slick.async.jdbc.config._
 import slick.async.jdbc.meta.MTable
 import slick.lifted._
 import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
@@ -52,6 +52,10 @@ trait HsqldbProfile extends JdbcProfile { self =>
   override protected def computeQueryCompiler = new HsqldbQueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
   override val columnTypes = new JdbcTypes
+  override lazy val crudCompiler = new HsqldbCrudCompiler {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override val compilerContent = self.computeQueryCompiler
+  }
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent

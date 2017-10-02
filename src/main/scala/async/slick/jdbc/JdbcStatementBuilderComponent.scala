@@ -24,8 +24,8 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
 
   // Create the different builders -- these methods should be overridden by profiles as needed
   def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder //= new QueryBuilder(n, state)(new JdbcComponentCapabilities {})
-  def createInsertBuilder(node: Insert): InsertBuilder = crudCompiler.createInsertBuilder(node)
-  def createUpsertBuilder(node: Insert): InsertBuilder = crudCompiler.createUpsertBuilder(node)
+  //def createInsertBuilder(node: Insert): InsertBuilder = ??? //= crudCompiler.createInsertBuilder(node)
+  //def createUpsertBuilder(node: Insert): InsertBuilder = ??? //= crudCompiler.createUpsertBuilder(node)
   def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
   def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)

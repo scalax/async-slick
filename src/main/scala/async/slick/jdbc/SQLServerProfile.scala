@@ -77,17 +77,16 @@ trait SQLServerProfile extends JdbcProfile { self =>
       .addBefore(new ProtectGroupBy, Phase.mergeToComprehensions)
       .replace(new RemoveFieldNames(alwaysKeepSubqueryNames = true))
       + Phase.rewriteBooleans)*/
+  override lazy val crudCompiler: CrudCompiler = new SQLServerCrudCompiler {
+    override lazy val compilerContent = self.computeQueryCompiler
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
   override val columnTypes = new SQLServerJdbcTypes {}
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new SQLServerQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
-  override def createInsertBuilder(node: Insert): InsertBuilder = new SQLServerInsertBuilder(node) {
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new SQLServerUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -148,7 +147,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  abstract class SQLServerInsertBuilder(ins: Insert) extends InsertBuilder(ins) {
+  /*abstract class SQLServerInsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     override protected def emptyInsert: String = s"insert into $tableName default values"
   }
 
@@ -156,7 +155,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     // SQL Server requires MERGE statements to end with a semicolon (unlike all other
     // statements that you can execute via JDBC)
     override protected def buildMergeEnd: String = super.buildMergeEnd + ";"
-  }
+  }*/
 
   class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {

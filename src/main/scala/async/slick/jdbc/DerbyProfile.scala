@@ -6,7 +6,7 @@ import slick.ast._
 import slick.ast.TypeUtil._
 import slick.basic.Capability
 import slick.async.dbio._
-import slick.async.jdbc.config.{ BasicCapabilities, DerbyCapabilities, DerbyQueryCompiler }
+import slick.async.jdbc.config._
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.jdbc.meta.MTable
 import slick.async.relational.RelationalTableComponent
@@ -108,6 +108,10 @@ trait DerbyProfile extends JdbcProfile { self =>
   override protected def computeQueryCompiler = new DerbyQueryCompiler {}
   //super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
   override val columnTypes = new DerbyJdbcTypes {}
+  override lazy val crudCompiler = new DerbyCrudCompiler {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override val compilerContent = self.computeQueryCompiler
+  }
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new DerbyQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent

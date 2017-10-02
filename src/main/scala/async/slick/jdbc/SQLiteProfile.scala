@@ -10,7 +10,7 @@ import slick.SlickException
 import slick.basic.Capability
 import slick.async.dbio._
 import slick.ast._
-import slick.async.jdbc.config.{ BasicCapabilities, InsertBuilder, SQLiteCapabilities }
+import slick.async.jdbc.config.{ BasicCapabilities, InsertBuilder, SQLiteCapabilities, SQLiteCrudCompiler }
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
@@ -160,11 +160,9 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new SQLiteUpsertBuilder(node) {
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
-  override def createInsertBuilder(node: Insert): InsertBuilder = new SQLiteInsertBuilder(node) {
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  override lazy val crudCompiler = new SQLiteCrudCompiler {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override val compilerContent = self.computeQueryCompiler
   }
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -215,13 +213,13 @@ trait SQLiteProfile extends JdbcProfile { self =>
   }*/
 
   /* Extending super.InsertBuilder here instead of super.UpsertBuilder. INSERT OR REPLACE is almost identical to INSERT. */
-  abstract class SQLiteUpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
+  /*abstract class SQLiteUpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     override protected def buildInsertStart = allNames.mkString(s"insert or replace into $tableName (", ",", ") ")
   }
 
   abstract class SQLiteInsertBuilder(ins: Insert) extends InsertBuilder(ins) {
     override protected def emptyInsert: String = s"insert into $tableName default values"
-  }
+  }*/
 
   class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected val foreignKeys = Nil // handled directly in addTableOptions

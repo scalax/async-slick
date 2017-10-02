@@ -7,19 +7,14 @@ import java.sql.{ Array => _, _ }
 
 import slick.SlickException
 import slick.ast._
-import slick.async.basic.BasicStreamingAction
-import slick.compiler.{ CompilerState, Phase }
+import slick.compiler.CompilerState
 import slick.async.dbio._
-import slick.async.jdbc.config.{ BasicCapabilities, OracleCapabilities, OracleColumnOptions, OracleQueryCompiler }
-import slick.async.jdbc.meta.{ MColumn, MQName, MTable }
+import slick.async.jdbc.config._
+import slick.async.jdbc.meta.{ MColumn, MTable }
 import slick.lifted._
 import slick.model.ForeignKeyAction
-import slick.relational.{ RelationalCapabilities, ResultConverter }
+import slick.relational.ResultConverter
 import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
-import slick.async.sql.SqlProfile
-import slick.basic.Capability
-import slick.util.ConstArray
-import slick.util.MacroSupport.macroSupportInterpolation
 
 /**
  * Slick profile for Oracle.
@@ -114,6 +109,11 @@ trait OracleProfile extends JdbcProfile { self =>
       .replace(Phase.resolveZipJoinsRownumStyle)
       - Phase.fixRowNumberOrdering
       + Phase.rewriteBooleans + new RemoveSubqueryOrdering)*/
+
+  override lazy val crudCompiler: CrudCompiler = new OracleCrudCompiler {
+    override lazy val compilerContent = self.computeQueryCompiler
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
 
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new OracleQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent

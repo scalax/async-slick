@@ -132,6 +132,11 @@ trait PostgresProfile extends JdbcProfile { self =>
     }
   }
 
+  override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
+    override lazy val compilerContent = self.computeQueryCompiler
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
@@ -145,9 +150,9 @@ trait PostgresProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
+  /*override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-  }
+  }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override protected lazy val useServerSideUpsert = true
@@ -202,7 +207,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     }
   }*/
 
-  abstract class PostgresUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+  /*abstract class PostgresUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     override def buildInsert: InsertBuilderResult = {
       val update = "update " + tableName + " set " + softNames.map(n => s"$n=?").mkString(",") + " where " + pkNames.map(n => s"$n=?").mkString(" and ")
       val nonAutoIncNames = nonAutoIncSyms.map(fs => sqlUtilsComponent.quoteIdentifier(fs.name)).mkString(",")
@@ -213,7 +218,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     }
 
     override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms ++ nonAutoIncSyms.toSeq ++ pkSyms)
-  }
+  }*/
 
   class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override def createPhase1 = super.createPhase1 ++ columns.flatMap {

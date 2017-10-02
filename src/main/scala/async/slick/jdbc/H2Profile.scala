@@ -5,7 +5,7 @@ import java.util.UUID
 
 import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 import slick.ast._
-import slick.async.jdbc.config.{ BasicCapabilities, H2Capabilities, H2QueryCompiler, InsertBuilder }
+import slick.async.jdbc.config._
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MTable }
 
@@ -77,8 +77,9 @@ trait H2Profile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new H2UpsertBuilder(node) {
-    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+  override lazy val crudCompiler = new H2CrudCompiler {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override val compilerContent = self.computeQueryCompiler
   }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
@@ -128,11 +129,6 @@ trait H2Profile extends JdbcProfile { self =>
       override def valueToSQLLiteral(value: UUID) = "'" + value + "'"
       override def hasLiteralForm = true
     }
-  }
-
-  /* Extending super.InsertBuilder here instead of super.UpsertBuilder. MERGE is almost identical to INSERT on H2. */
-  abstract class H2UpsertBuilder(ins: Insert) extends InsertBuilder(ins) {
-    override protected def buildInsertStart = allNames.mkString(s"merge into $tableName (", ",", ") ")
   }
 
   class CountingInsertActionComposerImpl[U](compiled: CompiledInsert) extends super.CountingInsertActionComposerImpl[U](compiled) {

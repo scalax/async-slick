@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 import slick.ast._
 import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
-import slick.async.jdbc.config.{ BasicCapabilities, DB2Capabilities, DB2QueryCompiler }
+import slick.async.jdbc.config._
 import slick.async.jdbc.meta.MTable
 import slick.async.relational.RelationalTableComponent
 import slick.lifted._
@@ -61,7 +61,10 @@ trait DB2Profile extends JdbcProfile { self =>
   override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
-
+  }
+  override lazy val crudCompiler = new DB2CrudCompiler {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override val compilerContent = self.computeQueryCompiler
   }
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)

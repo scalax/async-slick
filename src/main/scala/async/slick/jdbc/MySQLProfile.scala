@@ -118,11 +118,12 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override val columnTypes = new MySQLJdbcTypes {}
   override protected def computeQueryCompiler = new MysqlQueryCompiler {}
   //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
-  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
-    override lazy val commonCapabilities = profile.capabilitiesContent
+  override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
+    override lazy val compilerContent = profile.computeQueryCompiler
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }
-  override def createUpsertBuilder(node: Insert): InsertBuilder = new MysqlUpsertBuilder(node) {
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
+    override lazy val commonCapabilities = profile.capabilitiesContent
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -235,13 +236,13 @@ trait MySQLProfile extends JdbcProfile { profile =>
     }
   }*/
 
-  abstract class MysqlUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
+  /*abstract class MysqlUpsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     override def buildInsert: InsertBuilderResult = {
       val start = buildInsertStart
       val update = softNames.map(n => s"$n=VALUES($n)").mkString(", ")
       new InsertBuilderResult(table, s"$start values $allVars on duplicate key update $update", syms)
     }
-  }
+  }*/
 
   class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def dropForeignKey(fk: ForeignKey) = {
