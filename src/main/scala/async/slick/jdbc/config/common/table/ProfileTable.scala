@@ -1,9 +1,7 @@
 package slick.async.jdbc.config
 
 import slick.ast._
-import slick.async.jdbc.OracleProfile
 import slick.async.relational.RelationalProfile
-import slick.async.sql.SqlProfile
 import slick.lifted.{ AbstractTable, RefTag, Rep, Tag }
 
 abstract class ProfileTable[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends AbstractTable[T](_tableTag, _schemaName, _tableName) { table =>
@@ -39,21 +37,4 @@ abstract class ProfileTable[T](_tableTag: Tag, _schemaName: Option[String], _tab
       }) + "." + n
     }
   }
-}
-
-trait RelationalColumnOptions {
-  val PrimaryKey = ColumnOption.PrimaryKey
-  def Default[T](defaultValue: T) = RelationalProfile.ColumnOption.Default[T](defaultValue)
-  val AutoInc = ColumnOption.AutoInc
-  val Unique = ColumnOption.Unique
-  val Length = RelationalProfile.ColumnOption.Length
-}
-
-trait SqlTableColumnOptions extends RelationalColumnOptions {
-  def SqlType(typeName: String) = SqlProfile.ColumnOption.SqlType(typeName)
-}
-
-trait OracleColumnOptions extends SqlTableColumnOptions {
-  def AutoIncSequenceName(name: String) = OracleProfile.ColumnOption.AutoIncSequenceName(name)
-  def AutoIncTriggerName(name: String) = OracleProfile.ColumnOption.AutoIncTriggerName(name)
 }

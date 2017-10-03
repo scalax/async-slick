@@ -13,9 +13,8 @@ trait BasicProfileAPI { self =>
   protected val crudCompiler: CrudCompiler
 
   protected def createQueryActionExtensionMethods[R, S <: NoStream](tree: Node, param: Any): QueryActionExtensionMethodsImpl[R, S] =
-    new QueryActionExtensionMethodsImpl[R, S](tree, param) {
-      override val jdbcInvokerComponent = self.jdbcInvokerComponent
-    }
+    CreateQueryActionExtensionMethodsContent(jdbcInvokerComponent, tree, param)
+
   protected def createStreamingQueryActionExtensionMethods[R, T](tree: Node, param: Any): StreamingQueryActionExtensionMethodsImpl[R, T] =
     new StreamingQueryActionExtensionMethodsImpl[R, T](tree, param) {
       override val jdbcInvokerComponent = self.jdbcInvokerComponent

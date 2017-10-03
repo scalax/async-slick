@@ -3,7 +3,7 @@ package slick.async.jdbc.config
 import slick.ast.TypeUtil.:@
 import slick.ast._
 import slick.async.basic.BasicStreamingAction
-import slick.async.dbio.{ Effect, NoStream, Streaming, SynchronousDatabaseAction }
+import slick.async.dbio.{ Effect, NoStream, Streaming }
 import slick.async.jdbc.{ JdbcBackend, JdbcInvokerComponent, ResultSetMutator, StreamingInvokerAction }
 import slick.async.sql.{ FixedSqlAction, FixedSqlStreamingAction }
 import slick.relational.CompiledMapping
@@ -11,15 +11,6 @@ import slick.util.SQLBuilder
 import slick.ast.Util._
 
 import scala.collection.mutable.Builder
-
-trait CreateQueryActionExtensionMethodsContent { self =>
-  val jdbcInvokerComponent: JdbcInvokerComponent
-
-  def createQueryActionExtensionMethods[R, S <: NoStream](tree: Node, param: Any): QueryActionExtensionMethodsImpl[R, S] =
-    new QueryActionExtensionMethodsImpl[R, S](tree, param) {
-      override val jdbcInvokerComponent = self.jdbcInvokerComponent
-    }
-}
 
 trait BasicQueryActionExtensionMethods[R, S <: NoStream] {
   /** An Action that runs this query. */
