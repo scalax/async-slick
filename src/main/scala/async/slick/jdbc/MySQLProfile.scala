@@ -115,7 +115,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
-  override val columnTypes = new MySQLJdbcTypes {}
+  //override val columnTypes = new MySQLJdbcTypes {}
   override protected def computeQueryCompiler = new MysqlQueryCompiler {}
   //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
   override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
@@ -124,6 +124,8 @@ trait MySQLProfile extends JdbcProfile { profile =>
     override lazy val capabilitiesContent = profile.capabilitiesContent
     override val scalarFrom = profile.scalarFrom
   }
+
+  override val api: API = new API with MySQLJdbcTypes {}
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
     override lazy val commonCapabilities = profile.capabilitiesContent
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent

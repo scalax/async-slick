@@ -4,7 +4,7 @@ import java.util.UUID
 
 import slick.ast._
 
-class H2JdbcTypes extends JdbcTypes {
+trait H2JdbcTypes extends JdbcTypes {
   override val uuidJdbcType = new UUIDJdbcType {
     override def sqlTypeName(sym: Option[FieldSymbol]) = "UUID"
     override def valueToSQLLiteral(value: UUID) = "'" + value + "'"

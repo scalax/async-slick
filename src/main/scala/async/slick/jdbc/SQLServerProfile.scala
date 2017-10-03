@@ -86,7 +86,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
-  override val columnTypes = new SQLServerJdbcTypes {}
+  //override val columnTypes = new SQLServerJdbcTypes {}
 
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
@@ -115,6 +115,8 @@ trait SQLServerProfile extends JdbcProfile { self =>
         super.jdbcTypeToScala(jdbcType, typeName)
     }
   }
+
+  override val api: API = new API with SQLServerJdbcTypes {}
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)

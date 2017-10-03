@@ -58,7 +58,7 @@ trait DB2Profile extends JdbcProfile { self =>
   override protected def computeQueryCompiler = new DB2QueryCompiler {}
   /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       + Phase.rewriteBooleans)*/
-  override val columnTypes = new DB2JdbcTypes {}
+  //override val columnTypes = new DB2JdbcTypes {}
   /*override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
@@ -72,6 +72,7 @@ trait DB2Profile extends JdbcProfile { self =>
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+  override val api: API = new API with DB2JdbcTypes {}
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE"))).map(_.filter(_.name.schema.filter(_ == "SYSTOOLS").isEmpty))

@@ -51,7 +51,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
 
   override protected def computeQueryCompiler = new HsqldbQueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
-  override val columnTypes = new HsqldbJdbcTypes {}
+  //override val columnTypes = new HsqldbJdbcTypes {}
 
   override lazy val crudCompiler = new HsqldbCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
@@ -59,6 +59,9 @@ trait HsqldbProfile extends JdbcProfile { self =>
     override lazy val capabilitiesContent = self.capabilitiesContent
     override val scalarFrom = self.scalarFrom
   }
+
+  override val api: API = new API with HsqldbJdbcTypes {}
+
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent

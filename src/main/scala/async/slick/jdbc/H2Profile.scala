@@ -70,7 +70,7 @@ trait H2Profile extends JdbcProfile { self =>
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
-  override val columnTypes = new H2JdbcTypes {}
+  //override val columnTypes = new H2JdbcTypes {}
   override protected def computeQueryCompiler = new H2QueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state) {
@@ -93,6 +93,8 @@ trait H2Profile extends JdbcProfile { self =>
       size.fold("VARCHAR")(l => if (l.varying) s"VARCHAR(${l.length})" else s"CHAR(${l.length})")
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
+
+  override val api: API = new API with H2JdbcTypes {}
 
   /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")

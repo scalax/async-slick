@@ -145,7 +145,7 @@ trait PostgresProfile extends JdbcProfile { self =>
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
-  override val columnTypes = new PostgresJdbcTypes {}
+  //override val columnTypes = new PostgresJdbcTypes {}
   override protected def computeQueryCompiler = new PostgresQueryCompiler {}
   //super.computeQueryCompiler - Phase.rewriteDistinct
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
@@ -160,6 +160,8 @@ trait PostgresProfile extends JdbcProfile { self =>
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useTransactionForUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
+
+  override val api: API = new API with PostgresJdbcTypes {}
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
     case java.sql.Types.VARCHAR =>

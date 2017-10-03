@@ -5,7 +5,7 @@ import java.util.UUID
 
 import slick.ast._
 
-class SQLiteJdbcTypes extends JdbcTypes {
+trait SQLiteJdbcTypes extends JdbcTypes {
   override val booleanJdbcType = new BooleanJdbcType
   override val dateJdbcType = new DateJdbcType
   override val timeJdbcType = new TimeJdbcType

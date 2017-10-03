@@ -152,9 +152,7 @@ trait BasicImplicitColumnTypes {
   implicit def stringColumnType: BaseColumnType[String]
 }
 
-trait ImplicitColumnTypes extends BasicImplicitColumnTypes {
-  protected val columnTypes: slick.async.jdbc.JdbcTypes
-
+trait ImplicitColumnTypes extends BasicImplicitColumnTypes { columnTypes: slick.async.jdbc.JdbcTypes =>
   override implicit def booleanColumnType: DriverJdbcType[Boolean] = columnTypes.booleanJdbcType
   implicit def blobColumnType: DriverJdbcType[Blob] = columnTypes.blobJdbcType
   override implicit def byteColumnType: DriverJdbcType[Byte] with NumericTypedType = columnTypes.byteJdbcType

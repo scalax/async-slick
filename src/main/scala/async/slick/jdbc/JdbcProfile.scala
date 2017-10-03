@@ -24,7 +24,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   val backend: Backend = JdbcBackend
   type ColumnType[T] = JdbcType[T]
   //type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
-  val columnTypes: slick.async.jdbc.JdbcTypes = new JdbcTypes {}
+  //val columnTypes: slick.async.jdbc.JdbcTypes = new JdbcTypes {}
   //lazy val MappedColumnType = MappedJdbcType
 
   //override protected def computeCapabilities = super.computeCapabilities ++ JdbcCapabilities.all
@@ -52,9 +52,9 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
       with slick.async.dbio.DBIOAliases
       with ExtensionMethodConversions
       with BasicProfileAPI
-      with JdbcProfileAPI {
+      with JdbcProfileAPI { api: JdbcTypes =>
     override protected lazy val crudCompiler = self.crudCompiler
-    override protected lazy val columnTypes = self.columnTypes
+    //override protected lazy val columnTypes = self.columnTypes
 
     implicit lazy val slickProfile: self.type = self
 
@@ -95,7 +95,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
     implicit def actionBasedSQLInterpolation(s: StringContext): ActionBasedSQLInterpolation = new ActionBasedSQLInterpolation(s)
   }
 
-  val api: API = new API {}
+  val api: API //= new API {}
 
   def runSynchronousQuery[R](tree: Node, param: Any)(implicit session: Backend#Session): R = tree match {
     case rsm @ ResultSetMapping(_, _, CompiledMapping(_, elemType)) :@ CollectionType(cons, el) =>

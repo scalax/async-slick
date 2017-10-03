@@ -155,7 +155,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     MTable.getTables(Some(""), Some(""), None, Some(Seq("TABLE")))
       .map(_.filter(_.name.name.toLowerCase != "sqlite_sequence"))
 
-  override val columnTypes = new SQLiteJdbcTypes {}
+  //override val columnTypes = new SQLiteJdbcTypes {}
 
   override lazy val crudCompiler = new SQLiteCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
@@ -163,6 +163,8 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override lazy val capabilitiesContent = self.capabilitiesContent
     override val scalarFrom = self.scalarFrom
   }
+  override val api: API = new API with SQLiteJdbcTypes {}
+
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =

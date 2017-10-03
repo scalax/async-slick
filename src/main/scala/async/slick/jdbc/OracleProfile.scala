@@ -95,6 +95,10 @@ trait OracleProfile extends JdbcProfile { self =>
     }
   }
 
+  override val api: API = new API with OracleJdbcTypes {
+    override val blobBufferSize = self.blobBufferSize
+  }
+
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
@@ -124,9 +128,9 @@ trait OracleProfile extends JdbcProfile { self =>
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
-  override val columnTypes = new OracleJdbcTypes {
+  /*override val columnTypes = new OracleJdbcTypes {
     override val blobBufferSize = self.blobBufferSize
-  }
+  }*/
 
   val blobBufferSize = 4096
 
@@ -367,6 +371,7 @@ trait OracleProfile extends JdbcProfile { self =>
         for (s <- sql) ctx.session.withStatement()(_.execute(s))
     }
   }
+
   //override lazy val mappingCompiler: MappingCompiler = new OracleMappingCompiler {}
 
   /*override def createOptionResultConverter[T](ti: JdbcType[T], idx: Int): ResultConverter[JdbcResultConverterDomain, Option[T]] =

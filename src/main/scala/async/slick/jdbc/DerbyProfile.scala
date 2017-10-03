@@ -107,7 +107,7 @@ trait DerbyProfile extends JdbcProfile { self =>
 
   override protected def computeQueryCompiler = new DerbyQueryCompiler {}
   //super.computeQueryCompiler + Phase.rewriteBooleans + Phase.specializeParameters
-  override val columnTypes = new DerbyJdbcTypes {}
+  //override val columnTypes = new DerbyJdbcTypes {}
   override lazy val crudCompiler = new DerbyCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override val compilerContent = self.computeQueryCompiler
@@ -121,6 +121,7 @@ trait DerbyProfile extends JdbcProfile { self =>
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+  override val api: API = new API with DerbyJdbcTypes {}
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
     case java.sql.Types.BOOLEAN => "SMALLINT"
