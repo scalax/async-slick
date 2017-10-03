@@ -51,7 +51,7 @@ import slick.util.ConfigExtensionMethods.configExtensionMethods
  * old path are *not* used anymore. This deprecation warning will be removed in a
  * future version.
  */
-trait MySQLProfile extends JdbcProfile { profile =>
+trait MySQLProfile extends JdbcProfile { self =>
   import MySQLProfile.{ RowNum, RowNumGen }
 
   /*override protected def computeCapabilities: Set[Capability] = (super.computeCapabilities
@@ -71,7 +71,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
 
   override lazy val capabilitiesContent: BasicCapabilities = new MysqlCapabilities {}
 
-  class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
+  /*class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createPrimaryKeyBuilder(tableBuilder: TableBuilder, meta: Seq[MPrimaryKey]): PrimaryKeyBuilder = new PrimaryKeyBuilder(tableBuilder, meta) {
       // TODO: this needs a test
       override def name = super.name.filter(_ != "PRIMARY")
@@ -110,28 +110,30 @@ trait MySQLProfile extends JdbcProfile { profile =>
         case _ => super.jdbcTypeToScala(jdbcType, typeName)
       }
     }
-  }
+  }*/
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new ModelBuilder(tables, ignoreInvalidDefaults)
+    new MysqlModelBuilder(tables, ignoreInvalidDefaults)
 
   //override val columnTypes = new MySQLJdbcTypes {}
   override protected def computeQueryCompiler = new MysqlQueryCompiler {}
   //super.computeQueryCompiler.replace(new MySQLResolveZipJoins) - Phase.fixRowNumberOrdering
   override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
-    override lazy val compilerContent = profile.computeQueryCompiler
-    override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
-    override lazy val capabilitiesContent = profile.capabilitiesContent
-    override val scalarFrom = profile.scalarFrom
+    override lazy val compilerContent = self.computeQueryCompiler
+    override lazy val sqlUtilsComponent = self.sqlUtilsComponent
+    override lazy val capabilitiesContent = self.capabilitiesContent
+    override val scalarFrom = self.scalarFrom
   }
 
-  override val api: API = new API with MySQLJdbcTypes {}
+  override val api: API with MySQLJdbcTypes = new API with MySQLJdbcTypes {}
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new MysqlQueryBuilder(n, state) {
     override lazy val commonCapabilities = profile.capabilitiesContent
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new MySQLColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
   //override def quoteIdentifier(id: String) = '`' + id + '`'
@@ -256,8 +258,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
       "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP PRIMARY KEY"
     }
   }
-
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {
       if (defaultLiteral ne null) sb append " DEFAULT " append defaultLiteral
       if (notNull) sb append " NOT NULL"
@@ -266,8 +267,7 @@ trait MySQLProfile extends JdbcProfile { profile =>
       if (primaryKey) sb append " PRIMARY KEY"
       if (unique) sb append " UNIQUE"
     }
-  }
-
+  }*/
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       import seq.integral._

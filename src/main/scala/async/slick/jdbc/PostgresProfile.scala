@@ -3,6 +3,8 @@ package slick.async.jdbc
 import java.util.UUID
 import java.sql.{ PreparedStatement, ResultSet }
 
+import async.slick.jdbc.config.postgres.PostgresColumnDDLBuilder
+
 import scala.concurrent.ExecutionContext
 import slick.ast._
 import slick.basic.Capability
@@ -57,7 +59,7 @@ trait PostgresProfile extends JdbcProfile { self =>
 
   override lazy val capabilitiesContent: BasicCapabilities = new PostgresCapabilities {}
 
-  class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
+  /*class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
       override def schema = super.schema.filter(_ != "public") // remove default schema
     }
@@ -130,7 +132,7 @@ trait PostgresProfile extends JdbcProfile { self =>
       // FIXME: this needs a test
       override def columns = super.columns.map(_.stripPrefix("\"").stripSuffix("\""))
     }
-  }
+  }*/
 
   override lazy val crudCompiler: CrudCompiler = new PostgresCrudCompiler {
     override lazy val compilerContent = self.computeQueryCompiler
@@ -140,7 +142,7 @@ trait PostgresProfile extends JdbcProfile { self =>
   }
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new ModelBuilder(tables, ignoreInvalidDefaults)
+    new PostgresModelBuilder(tables, ignoreInvalidDefaults)
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
@@ -156,12 +158,14 @@ trait PostgresProfile extends JdbcProfile { self =>
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new PostgresColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useTransactionForUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
 
-  override val api: API = new API with PostgresJdbcTypes {}
+  override val api: API with PostgresJdbcTypes = new API with PostgresJdbcTypes {}
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
     case java.sql.Types.VARCHAR =>
@@ -226,18 +230,17 @@ trait PostgresProfile extends JdbcProfile { self =>
 
   class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override def createPhase1 = super.createPhase1 ++ columns.flatMap {
-      case cb: ColumnDDLBuilder => cb.createLobTrigger(table.tableName)
+      case cb: PostgresColumnDDLBuilder => cb.createLobTrigger(table.tableName)
     }
     override def dropPhase1 = {
       val dropLobs = columns.flatMap {
-        case cb: ColumnDDLBuilder => cb.dropLobTrigger(table.tableName)
+        case cb: PostgresColumnDDLBuilder => cb.dropLobTrigger(table.tableName)
       }
       if (dropLobs.isEmpty) super.dropPhase1
       else Seq("delete from " + sqlUtilsComponent.quoteIdentifier(table.tableName)) ++ dropLobs ++ super.dropPhase1
     }
   }
-
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  /*abstract class PostgresColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuilder(column) {
     override def appendColumn(sb: StringBuilder) {
       sb append sqlUtilsComponent.quoteIdentifier(column.name) append ' '
       if (autoIncrement && !customSqlType) {
@@ -262,7 +265,7 @@ trait PostgresProfile extends JdbcProfile { self =>
         "drop trigger " + lobTrigger(tname) + " on " + sqlUtilsComponent.quoteIdentifier(tname)
       )
       else None
-  }
+  }*/
   /*class JdbcTypes extends super.JdbcTypes {
     override val byteArrayJdbcType = new ByteArrayJdbcType
     override val uuidJdbcType = new UUIDJdbcType

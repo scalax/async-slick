@@ -11,7 +11,7 @@ import slick.lifted.Isomorphism
 
 import scala.language.higherKinds
 
-trait JdbcTypesComponent /*extends RelationalTypesComponent*/ { self: JdbcProfile =>
+trait JdbcTypesComponent /*extends RelationalTypesComponent*/ { self =>
 
   abstract class MappedJdbcType[T, U](implicit val tmd: JdbcType[U], val classTag: ClassTag[T]) extends JdbcType[T] {
     def map(t: T): U

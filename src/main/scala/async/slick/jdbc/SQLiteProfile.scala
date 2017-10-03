@@ -10,7 +10,7 @@ import slick.SlickException
 import slick.basic.Capability
 import slick.async.dbio._
 import slick.ast._
-import slick.async.jdbc.config.{ BasicCapabilities, InsertBuilder, SQLiteCapabilities, SQLiteCrudCompiler }
+import slick.async.jdbc.config._
 import slick.util.MacroSupport.macroSupportInterpolation
 import slick.compiler.CompilerState
 import slick.async.jdbc.meta.{ MColumn, MPrimaryKey, MTable }
@@ -95,7 +95,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
 
   override lazy val capabilitiesContent: BasicCapabilities = new SQLiteCapabilities {}
 
-  class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
+  /*class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {
       /** Regex matcher to extract name and length out of a db type name with length ascription */
       final val TypePattern = "^([A-Z]+)(\\(([0-9]+)\\))?$".r
@@ -146,10 +146,10 @@ trait SQLiteProfile extends JdbcProfile { self =>
         _.exists(_.indexName.exists(_.startsWith("sqlite_autoindex_")))
       )
     )
-  }
+  }*/
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new ModelBuilder(tables, ignoreInvalidDefaults)
+    new SQLiteModelBuilder(tables, ignoreInvalidDefaults)
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(Some(""), Some(""), None, Some(Seq("TABLE")))
@@ -163,10 +163,12 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override lazy val capabilitiesContent = self.capabilitiesContent
     override val scalarFrom = self.scalarFrom
   }
-  override val api: API = new API with SQLiteJdbcTypes {}
+  override val api: API with SQLiteJdbcTypes = new API with SQLiteJdbcTypes {}
 
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new SQLiteColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 
@@ -240,7 +242,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override def truncateTable = "delete from " + sqlUtilsComponent.quoteTableName(tableNode)
   }
 
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {
       if (defaultLiteral ne null) sb append " DEFAULT " append defaultLiteral
       if (autoIncrement) sb append " PRIMARY KEY AUTOINCREMENT"
@@ -248,7 +250,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
       if (notNull) sb append " NOT NULL"
       if (unique) sb append " UNIQUE"
     }
-  }
+  }*/
 
   class CountingInsertActionComposerImpl[U](compiled: CompiledInsert) extends super.CountingInsertActionComposerImpl[U](compiled) {
     // SQLite cannot perform server-side insert-or-update with soft insert semantics. We don't have to do

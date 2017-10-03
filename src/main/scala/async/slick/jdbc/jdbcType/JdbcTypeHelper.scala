@@ -30,6 +30,7 @@ object JdbcTypeHelper {
     case t => throw new SlickException("JdbcProfile has no JdbcType for type " + t)
   }): JdbcType[_]).asInstanceOf[JdbcType[Any]]
 
+  //TODO 未做数据库多样性处理
   def valueToSQLLiteral(v: Any, tpe: Type): String = {
     val JdbcTypeHelper(ti, option) = tpe
     if (option) v.asInstanceOf[Option[Any]].fold("null")(ti.valueToSQLLiteral)

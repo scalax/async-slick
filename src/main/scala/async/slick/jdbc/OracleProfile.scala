@@ -82,7 +82,7 @@ trait OracleProfile extends JdbcProfile { self =>
     override val O: OracleColumnOptions = new OracleColumnOptions {}
   }
 
-  class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
+  /*class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createColumnBuilder(tableBuilder: TableBuilder, meta: MColumn): ColumnBuilder = new ColumnBuilder(tableBuilder, meta) {
       override def tpe = meta.sqlType match {
         case 101 => "Double"
@@ -93,14 +93,14 @@ trait OracleProfile extends JdbcProfile { self =>
         case v => v
       }
     }
-  }
+  }*/
 
-  override val api: API = new API with OracleJdbcTypes {
+  override val api: API with OracleJdbcTypes = new API with OracleJdbcTypes {
     override val blobBufferSize = self.blobBufferSize
   }
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new ModelBuilder(tables, ignoreInvalidDefaults)
+    new OracleModelBuilder(tables, ignoreInvalidDefaults)
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] = {
     for {
@@ -126,7 +126,9 @@ trait OracleProfile extends JdbcProfile { self =>
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new OracleColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
   /*override val columnTypes = new OracleJdbcTypes {
     override val blobBufferSize = self.blobBufferSize
@@ -180,12 +182,12 @@ trait OracleProfile extends JdbcProfile { self =>
     override val dropPhase2 = dropAutoIncSequences ++ super.dropPhase2
 
     def createAutoIncSequences = columns.flatMap {
-      case cb: ColumnDDLBuilder =>
+      case cb: OracleColumnDDLBuilder =>
         cb.createSequenceAndTrigger(table)
     }
 
     def dropAutoIncSequences = columns.flatMap {
-      case cb: ColumnDDLBuilder =>
+      case cb: OracleColumnDDLBuilder =>
         cb.dropTriggerAndSequence(table)
     }
 
@@ -218,7 +220,7 @@ trait OracleProfile extends JdbcProfile { self =>
     }
   }
 
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     var sequenceName: String = _
     var triggerName: String = _
 
@@ -265,7 +267,7 @@ trait OracleProfile extends JdbcProfile { self =>
         s"drop sequence $seq"
       )
     }
-  }
+  }*/
 
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {

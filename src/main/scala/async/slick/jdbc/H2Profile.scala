@@ -47,7 +47,7 @@ trait H2Profile extends JdbcProfile { self =>
 
   override lazy val capabilitiesContent: BasicCapabilities = new H2Capabilities {}
 
-  class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
+  /*class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
       override def schema = super.schema.filter(_ != "PUBLIC") // remove default schema
     }
@@ -65,10 +65,10 @@ trait H2Profile extends JdbcProfile { self =>
         case _ => super.tpe
       }
     }
-  }
+  }*/
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new ModelBuilder(tables, ignoreInvalidDefaults)
+    new H2ModelBuilder(tables, ignoreInvalidDefaults)
 
   //override val columnTypes = new H2JdbcTypes {}
   override protected def computeQueryCompiler = new H2QueryCompiler {}
@@ -83,7 +83,9 @@ trait H2Profile extends JdbcProfile { self =>
     override lazy val capabilitiesContent = self.capabilitiesContent
     override val scalarFrom = self.scalarFrom
   }
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new H2ColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 
@@ -94,7 +96,7 @@ trait H2Profile extends JdbcProfile { self =>
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
 
-  override val api: API = new API with H2JdbcTypes {}
+  override val api: API with H2JdbcTypes = new API with H2JdbcTypes {}
 
   /*class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     override protected val concatOperator = Some("||")
@@ -116,8 +118,7 @@ trait H2Profile extends JdbcProfile { self =>
       case _ =>
     }
   }*/
-
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {
       if (defaultLiteral ne null) sb append " DEFAULT " append defaultLiteral
       if (notNull) sb append " NOT NULL"
@@ -125,7 +126,7 @@ trait H2Profile extends JdbcProfile { self =>
       if (autoIncrement) sb append " AUTO_INCREMENT"
       if (unique) sb append " UNIQUE"
     }
-  }
+  }*/
   /*class JdbcTypes extends super.JdbcTypes {
     override val uuidJdbcType = new UUIDJdbcType {
       override def sqlTypeName(sym: Option[FieldSymbol]) = "UUID"

@@ -30,7 +30,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   //def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   //def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
   def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder //= new ColumnDDLBuilder(column)
   def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
 
   class JdbcCompiledInsert(source: Node) {
@@ -715,7 +715,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   }
 
   /** Builder for column specifications in DDL statements. */
-  class ColumnDDLBuilder(column: FieldSymbol) {
+  /*class ColumnDDLBuilder(column: FieldSymbol) {
     protected val JdbcTypeHelper(jdbcType, isOption) = column.tpe
     protected var sqlType: String = null
     protected var varying: Boolean = false
@@ -764,7 +764,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
       if (primaryKey) sb append " PRIMARY KEY"
       if (unique) sb append " UNIQUE"
     }
-  }
+  }*/
 
   /** Builder for DDL statements for sequences. */
   class SequenceDDLBuilder(seq: Sequence[_]) {

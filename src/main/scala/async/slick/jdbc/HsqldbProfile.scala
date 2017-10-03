@@ -34,17 +34,17 @@ trait HsqldbProfile extends JdbcProfile { self =>
     - SqlCapabilities.sequenceCurr
     - JdbcCapabilities.insertOrUpdate)*/
 
-  class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
+  /*class ModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext) extends JdbcModelBuilder(mTables, ignoreInvalidDefaults) {
     override def createTableNamer(mTable: MTable): TableNamer = new TableNamer(mTable) {
       override def schema = super.schema.filter(_ != "PUBLIC") // remove default schema
       override def catalog = super.catalog.filter(_ != "PUBLIC") // remove default catalog
     }
-  }
+  }*/
 
   override lazy val capabilitiesContent: BasicCapabilities = new HsqldbCapabilities {}
 
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new ModelBuilder(tables, ignoreInvalidDefaults)
+    new HsqldbModelBuilder(tables, ignoreInvalidDefaults)
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
@@ -60,7 +60,11 @@ trait HsqldbProfile extends JdbcProfile { self =>
     override val scalarFrom = self.scalarFrom
   }
 
-  override val api: API = new API with HsqldbJdbcTypes {}
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+
+  override val api: API with HsqldbJdbcTypes = new API with HsqldbJdbcTypes {}
 
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new HsqldbQueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent

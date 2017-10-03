@@ -5,7 +5,7 @@ import slick.async.dbio.DBIO
 import slick.async.jdbc.meta.MTable
 import slick.model.Model
 
-trait JdbcModelComponent { self: JdbcProfile =>
+trait JdbcModelComponent { self =>
   /** Jdbc meta data for all tables included in the Slick model by default */
   def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] = MTable.getTables
 
@@ -19,6 +19,6 @@ trait JdbcModelComponent { self: JdbcProfile =>
     tablesA.flatMap(t => createModelBuilder(t, ignoreInvalidDefaults).buildModel)
   }
 
-  def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
-    new JdbcModelBuilder(tables, ignoreInvalidDefaults)
+  def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder
+  //= new JdbcModelBuilder(tables, ignoreInvalidDefaults)
 }

@@ -70,9 +70,11 @@ trait DB2Profile extends JdbcProfile { self =>
     override val scalarFrom = self.scalarFrom
   }
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new DB2ColumnDDLBuilder(column) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
-  override val api: API = new API with DB2JdbcTypes {}
+  override val api: API with DB2JdbcTypes = new API with DB2JdbcTypes {}
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE"))).map(_.filter(_.name.schema.filter(_ == "SYSTOOLS").isEmpty))
@@ -81,6 +83,9 @@ trait DB2Profile extends JdbcProfile { self =>
     case java.sql.Types.TINYINT => "SMALLINT" // DB2 has no smaller binary integer type
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
+
+  override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
+    new JdbcModelBuilder(tables, ignoreInvalidDefaults)
 
   override val scalarFrom = Some("sysibm.sysdummy1")
 
@@ -149,8 +154,7 @@ trait DB2Profile extends JdbcProfile { self =>
     //http://stackoverflow.com/questions/3006999/sql-query-to-truncate-table-in-ibm-db2
     override def truncateTable = s"DELETE FROM ${sqlUtilsComponent.quoteTableName(tableNode)}"
   }
-
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override def appendColumn(sb: StringBuilder) {
       val qname = sqlUtilsComponent.quoteIdentifier(column.name)
       sb append qname append ' '
@@ -160,8 +164,7 @@ trait DB2Profile extends JdbcProfile { self =>
         sb append " constraint " + sqlUtilsComponent.quoteIdentifier(column.name + "__bool") + " check (" append qname append " in (0, 1))"
       }
     }
-  }
-
+  }*/
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
