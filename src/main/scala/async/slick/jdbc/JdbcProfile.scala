@@ -24,7 +24,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   val backend: Backend = JdbcBackend
   type ColumnType[T] = JdbcType[T]
   //type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
-  val columnTypes: slick.async.jdbc.JdbcTypes = new JdbcTypes
+  val columnTypes: slick.async.jdbc.JdbcTypes = new JdbcTypes {}
   //lazy val MappedColumnType = MappedJdbcType
 
   //override protected def computeCapabilities = super.computeCapabilities ++ JdbcCapabilities.all

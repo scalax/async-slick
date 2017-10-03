@@ -6,11 +6,12 @@ import java.util.UUID
 import scala.reflect.ClassTag
 import slick.SlickException
 import slick.ast._
-import slick.async.relational.{ RelationalProfile, RelationalTypesComponent }
+import slick.async.relational.RelationalProfile
 import slick.lifted.Isomorphism
+
 import scala.language.higherKinds
 
-trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
+trait JdbcTypesComponent /*extends RelationalTypesComponent*/ { self: JdbcProfile =>
 
   abstract class MappedJdbcType[T, U](implicit val tmd: JdbcType[U], val classTag: ClassTag[T]) extends JdbcType[T] {
     def map(t: T): U
@@ -95,7 +96,7 @@ trait JdbcTypesComponent extends RelationalTypesComponent { self: JdbcProfile =>
     def setNull(p: PreparedStatement, idx: Int): Unit = p.setNull(idx, sqlType)
   }*/
 
-  class JdbcTypes extends slick.async.jdbc.JdbcTypes
+  //class JdbcTypes extends slick.async.jdbc.JdbcTypes
   /*trait ImplicitColumnTypes extends super.ImplicitColumnTypes {
     implicit def booleanColumnType = columnTypes.booleanJdbcType
     implicit def blobColumnType = columnTypes.blobJdbcType

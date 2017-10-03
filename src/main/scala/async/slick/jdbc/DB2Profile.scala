@@ -58,7 +58,7 @@ trait DB2Profile extends JdbcProfile { self =>
   override protected def computeQueryCompiler = new DB2QueryCompiler {}
   /*(super.computeQueryCompiler.addAfter(Phase.removeTakeDrop, Phase.expandSums)
       + Phase.rewriteBooleans)*/
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new DB2JdbcTypes {}
   /*override def createQueryBuilder(n: Node, state: CompilerState): slick.async.jdbc.QueryBuilder = new DB2QueryBuilder(n, state) {
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
@@ -173,8 +173,7 @@ trait DB2Profile extends JdbcProfile { self =>
       DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val uuidJdbcType = new UUIDJdbcType
 
@@ -189,7 +188,7 @@ trait DB2Profile extends JdbcProfile { self =>
       override def sqlTypeName(sym: Option[FieldSymbol]) = "CHAR(1)"
       override def valueToSQLLiteral(value: Boolean) = if (value) "1" else "0"
     }
-  }
+  }*/
 }
 
 object DB2Profile extends DB2Profile

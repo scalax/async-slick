@@ -70,7 +70,7 @@ trait H2Profile extends JdbcProfile { self =>
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ModelBuilder(tables, ignoreInvalidDefaults)
 
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new H2JdbcTypes {}
   override protected def computeQueryCompiler = new H2QueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) - Phase.fixRowNumberOrdering
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new H2QueryBuilder(n, state) {
@@ -124,15 +124,13 @@ trait H2Profile extends JdbcProfile { self =>
       if (unique) sb append " UNIQUE"
     }
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val uuidJdbcType = new UUIDJdbcType {
       override def sqlTypeName(sym: Option[FieldSymbol]) = "UUID"
       override def valueToSQLLiteral(value: UUID) = "'" + value + "'"
       override def hasLiteralForm = true
     }
-  }
-
+  }*/
   class CountingInsertActionComposerImpl[U](compiled: CompiledInsert) extends super.CountingInsertActionComposerImpl[U](compiled) {
     // H2 cannot perform server-side insert-or-update with soft insert semantics. We don't have to do
     // the same in ReturningInsertInvoker because H2 does not allow returning non-AutoInc keys anyway.

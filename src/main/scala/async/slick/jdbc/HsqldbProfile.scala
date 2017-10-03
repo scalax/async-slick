@@ -51,7 +51,8 @@ trait HsqldbProfile extends JdbcProfile { self =>
 
   override protected def computeQueryCompiler = new HsqldbQueryCompiler {}
   //super.computeQueryCompiler.replace(Phase.resolveZipJoinsRownumStyle) + Phase.specializeParameters - Phase.fixRowNumberOrdering
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new HsqldbJdbcTypes {}
+
   override lazy val crudCompiler = new HsqldbCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override val compilerContent = self.computeQueryCompiler
@@ -124,7 +125,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
     }
   }*/
 
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val byteArrayJdbcType = new ByteArrayJdbcType {
       override def sqlTypeName(sym: Option[FieldSymbol]) = "LONGVARBINARY"
     }
@@ -132,7 +133,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
       override def sqlType = java.sql.Types.BINARY
       override def sqlTypeName(sym: Option[FieldSymbol]) = "BINARY(16)"
     }
-  }
+  }*/
 
   class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {

@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
  * It requires a relational table structure as its basic model of data.
  */
 trait RelationalProfile extends BasicProfile with RelationalTableComponent
-    with RelationalSequenceComponent/*with RelationalTypesComponent*/
+    with RelationalSequenceComponent /*with RelationalTypesComponent*/
     with RelationalActionComponent { self: RelationalProfile =>
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
@@ -203,10 +203,10 @@ trait RelationalSequenceComponent { self: RelationalProfile =>
   }
 }
 //trait RelationalTypesComponent { self: RelationalProfile =>
-  //type ColumnType[T] <: TypedType[T]
-  //type BaseColumnType[T] <: ColumnType[T] with BaseTypedType[T]
+//type ColumnType[T] <: TypedType[T]
+//type BaseColumnType[T] <: ColumnType[T] with BaseTypedType[T]
 
-  /*val MappedColumnType: MappedColumnTypeFactory
+/*val MappedColumnType: MappedColumnTypeFactory
 
   trait MappedColumnTypeFactory {
     def base[T: ClassTag, U: BaseColumnType](tmap: T => U, tcomap: U => T): BaseColumnType[T]
@@ -215,7 +215,7 @@ trait RelationalSequenceComponent { self: RelationalProfile =>
       if (t == null)
         throw new NullPointerException("implicit BaseColumnType[U] for MappedColumnType.base[T, U] is null. This may be an initialization order problem.")
   }*/
-  /*trait ImplicitColumnTypes {
+/*trait ImplicitColumnTypes {
     type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
     implicit def isomorphicType[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: BaseColumnType[B]): BaseColumnType[A] =
       MappedColumnType.base[A, B](iso.map, iso.comap)

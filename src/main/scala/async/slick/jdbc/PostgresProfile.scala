@@ -145,7 +145,7 @@ trait PostgresProfile extends JdbcProfile { self =>
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new PostgresJdbcTypes {}
   override protected def computeQueryCompiler = new PostgresQueryCompiler {}
   //super.computeQueryCompiler - Phase.rewriteDistinct
   /*override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new PostgresQueryBuilder(n, state) {
@@ -261,8 +261,7 @@ trait PostgresProfile extends JdbcProfile { self =>
       )
       else None
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val byteArrayJdbcType = new ByteArrayJdbcType
     override val uuidJdbcType = new UUIDJdbcType
 
@@ -279,7 +278,7 @@ trait PostgresProfile extends JdbcProfile { self =>
       override def valueToSQLLiteral(value: UUID) = "'" + value + "'"
       override def hasLiteralForm = true
     }
-  }
+  }*/
 }
 
 object PostgresProfile extends PostgresProfile

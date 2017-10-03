@@ -124,7 +124,9 @@ trait OracleProfile extends JdbcProfile { self =>
   override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new OracleJdbcTypes {
+    override val blobBufferSize = self.blobBufferSize
+  }
 
   val blobBufferSize = 4096
 
@@ -272,8 +274,7 @@ trait OracleProfile extends JdbcProfile { self =>
       DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val blobJdbcType = new BlobJdbcType
     override val byteArrayJdbcType = new ByteArrayJdbcType
@@ -349,8 +350,7 @@ trait OracleProfile extends JdbcProfile { self =>
       }
       override def hasLiteralForm = true
     }
-  }
-
+  }*/
   /* Oracle throws an exception if you try to refer to a :new column in a
    * trigger statement in a PreparedStatement. Since we need to create
    * these statements for the AutoInc emulation, we execute all DDL

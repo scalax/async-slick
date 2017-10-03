@@ -155,7 +155,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     MTable.getTables(Some(""), Some(""), None, Some(Seq("TABLE")))
       .map(_.filter(_.name.name.toLowerCase != "sqlite_sequence"))
 
-  override val columnTypes = new JdbcTypes
+  override val columnTypes = new SQLiteJdbcTypes {}
 
   override lazy val crudCompiler = new SQLiteCrudCompiler {
     override val sqlUtilsComponent = self.sqlUtilsComponent
@@ -259,8 +259,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     case java.sql.Types.TINYINT | java.sql.Types.SMALLINT | java.sql.Types.BIGINT => "INTEGER"
     case _ => super.defaultSqlTypeName(tmd, sym)
   }
-
-  class JdbcTypes extends super.JdbcTypes {
+  /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val dateJdbcType = new DateJdbcType
     override val timeJdbcType = new TimeJdbcType
@@ -288,7 +287,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     class UUIDJdbcType extends super.UUIDJdbcType {
       override def sqlType = java.sql.Types.BLOB
     }
-  }
+  }*/
 }
 
 object SQLiteProfile extends SQLiteProfile
