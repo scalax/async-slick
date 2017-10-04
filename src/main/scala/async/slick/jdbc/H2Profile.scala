@@ -91,6 +91,9 @@ trait H2Profile extends JdbcProfile { self =>
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new H2ColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
+  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createInsertActionExtensionMethods[T](compiled: CompiledInsert): InsertActionExtensionMethods[T] =
     new CountingInsertActionComposerImpl[T](compiled)
 

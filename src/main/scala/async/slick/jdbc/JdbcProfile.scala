@@ -45,7 +45,7 @@ trait JdbcProfile extends JdbcActionComponent
   override type CompiledInsert = JdbcCompiledInsert
 
   override final def buildTableSchemaDescription(table: RelationalProfile#Table[_]): DDL = createTableDDLBuilder(table).buildDDL
-  final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL = createSequenceDDLBuilder(seq).buildDDL
+  //final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL //= createSequenceDDLBuilder(seq).buildDDL
 
   trait API extends LowPriorityAPI
       with RelationalAPI
@@ -64,8 +64,8 @@ trait JdbcProfile extends JdbcActionComponent
 
     type FastPath[T] = SimpleFastPathResultConverter[ResultConverterDomain, T]
     type Table[T] = self.Table[T]
-    type Sequence[T] = self.Sequence[T]
-    val Sequence = self.Sequence
+    type Sequence[T] = slick.async.jdbc.Sequence[T]
+    val Sequence = slick.async.jdbc.Sequence
     type ColumnType[T] = self.ColumnType[T]
     override type BaseColumnType[T] = slick.async.jdbc.JdbcType[T] with slick.ast.BaseTypedType[T]
     val MappedColumnType = MappedJdbcType

@@ -164,7 +164,9 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override val scalarFrom = self.scalarFrom
   }
   override val api: API with SQLiteJdbcTypes = new API with SQLiteJdbcTypes {}
-
+  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
   override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new SQLiteTableDDLBuilder(table) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
     override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {

@@ -81,7 +81,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     override lazy val compilerContent = self.computeQueryCompiler
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
     override lazy val capabilitiesContent = self.capabilitiesContent
-    override val scalarFrom = self.scalarFrom
+    override lazy val scalarFrom = self.scalarFrom
   }
 
   override protected lazy val useServerSideUpsert = true
@@ -134,6 +134,10 @@ trait SQLServerProfile extends JdbcProfile { self =>
       schema <- Functions.user.result
       mtables <- MTable.getTables(None, Some(schema), None, Some(Seq("TABLE")))
     } yield mtables
+  }
+
+  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
   }
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {

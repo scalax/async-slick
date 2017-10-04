@@ -186,9 +186,9 @@ trait RelationalTableComponent { self =>
 
 trait RelationalSequenceComponent { self =>
 
-  def buildSequenceSchemaDescription(seq: Sequence[_]): DDL
+  //def buildSequenceSchemaDescription(seq: Sequence[_]): DDL
 
-  class Sequence[T] private[Sequence] (
+  /*class Sequence[T] private[Sequence] (
       val name: String,
       val _minValue: Option[T],
       val _maxValue: Option[T],
@@ -214,7 +214,7 @@ trait RelationalSequenceComponent { self =>
 
   object Sequence {
     def apply[T: TypedType: Integral](name: String) = new Sequence[T](name, None, None, None, None, false)
-  }
+  }*/
 }
 //trait RelationalTypesComponent { self: RelationalProfile =>
 //type ColumnType[T] <: TypedType[T]

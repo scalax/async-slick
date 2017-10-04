@@ -76,7 +76,13 @@ trait HsqldbProfile extends JdbcProfile { self =>
       self.createColumnDDLBuilder(column, table)
     }
   }
-  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+  //TODO schema 方法未做数据库多样性处理
+  override def createSequenceDDLBuilder(seq: Sequence[_]): HsqldbSequenceDDLBuilder[_] = {
+    def create1[T](seq1: Sequence[T]): HsqldbSequenceDDLBuilder[T] = new HsqldbSequenceDDLBuilder(seq1) {
+      override val sqlUtilsComponent = self.sqlUtilsComponent
+    }
+    create1(seq)
+  }
 
   override protected lazy val useServerSideUpsert = true
   override protected lazy val useServerSideUpsertReturning = false
@@ -161,7 +167,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
       } else super.createIndex(idx)
     }
   }*/
-  class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
+  /*class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       import seq.integral._
       val increment = seq._increment.getOrElse(one)
@@ -177,7 +183,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
       if (seq._cycle) b append " CYCLE"
       DDL(b.toString, "DROP SEQUENCE " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
-  }
+  }*/
 }
 
 object HsqldbProfile extends HsqldbProfile

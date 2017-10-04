@@ -73,7 +73,13 @@ trait DB2Profile extends JdbcProfile { self =>
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new DB2ColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+  //TODO schema 方法未做数据库多样性处理
+  override def createSequenceDDLBuilder(seq: Sequence[_]): DB2SequenceDDLBuilder[_] = {
+    def create1[T](seq1: Sequence[T]): DB2SequenceDDLBuilder[T] = new DB2SequenceDDLBuilder(seq1) {
+      override val sqlUtilsComponent = self.sqlUtilsComponent
+    }
+    create1(seq)
+  }
   override val api: API with DB2JdbcTypes = new API with DB2JdbcTypes {}
 
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
@@ -164,7 +170,7 @@ trait DB2Profile extends JdbcProfile { self =>
       }
     }
   }*/
-  class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
+  /*class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
       b append " as " append JdbcTypeHelper.jdbcTypeFor(seq.tpe).sqlTypeName(None)
@@ -175,7 +181,7 @@ trait DB2Profile extends JdbcProfile { self =>
       if (seq._cycle) b append " cycle"
       DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
-  }
+  }*/
   /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val uuidJdbcType = new UUIDJdbcType

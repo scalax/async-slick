@@ -147,6 +147,10 @@ trait PostgresProfile extends JdbcProfile { self =>
   override def defaultTables(implicit ec: ExecutionContext): DBIO[Seq[MTable]] =
     MTable.getTables(None, None, None, Some(Seq("TABLE")))
 
+  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+  }
+
   //override val columnTypes = new PostgresJdbcTypes {}
   override protected def computeQueryCompiler = new PostgresQueryCompiler {}
   //super.computeQueryCompiler - Phase.rewriteDistinct

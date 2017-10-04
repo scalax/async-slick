@@ -134,7 +134,13 @@ trait OracleProfile extends JdbcProfile { self =>
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new OracleColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+  //TODO schema 方法未做数据库多样性处理
+  override def createSequenceDDLBuilder(seq: Sequence[_]): OracleSequenceDDLBuilder[_] = {
+    def create1[T](seq1: Sequence[T]): OracleSequenceDDLBuilder[T] = new OracleSequenceDDLBuilder(seq1) {
+      override val sqlUtilsComponent = self.sqlUtilsComponent
+    }
+    create1(seq)
+  }
   /*override val columnTypes = new OracleJdbcTypes {
     override val blobBufferSize = self.blobBufferSize
   }*/
@@ -273,8 +279,7 @@ trait OracleProfile extends JdbcProfile { self =>
       )
     }
   }*/
-
-  class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
+  /*class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
       seq._increment.foreach { b append " increment by " append _ }
@@ -284,7 +289,7 @@ trait OracleProfile extends JdbcProfile { self =>
       if (seq._cycle) b append " cycle nocache"
       DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
-  }
+  }*/
   /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val blobJdbcType = new BlobJdbcType

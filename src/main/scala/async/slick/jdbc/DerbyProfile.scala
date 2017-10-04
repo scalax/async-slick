@@ -127,7 +127,14 @@ trait DerbyProfile extends JdbcProfile { self =>
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new DerbyColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+
+  //TODO schema 方法未做数据库多样性处理
+  override def createSequenceDDLBuilder(seq: Sequence[_]): DerbySequenceDDLBuilder[_] = {
+    def create1[T](seq1: Sequence[T]): DerbySequenceDDLBuilder[T] = new DerbySequenceDDLBuilder(seq1) {
+      override val sqlUtilsComponent = self.sqlUtilsComponent
+    }
+    create1(seq)
+  }
   override val api: API with DerbyJdbcTypes = new API with DerbyJdbcTypes {}
 
   override def defaultSqlTypeName(tmd: JdbcType[_], sym: Option[FieldSymbol]): String = tmd.sqlType match {
@@ -217,7 +224,7 @@ trait DerbyProfile extends JdbcProfile { self =>
       if (unique) sb append " UNIQUE"
     }
   }*/
-  class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
+  /*class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       import seq.integral._
       val increment = seq._increment.getOrElse(one)
@@ -235,7 +242,7 @@ trait DerbyProfile extends JdbcProfile { self =>
       if (seq._cycle) b append " CYCLE"
       DDL(b.toString, "DROP SEQUENCE " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
-  }
+  }*/
   /*class JdbcTypes extends super.JdbcTypes {
     override val booleanJdbcType = new BooleanJdbcType
     override val uuidJdbcType = new UUIDJdbcType

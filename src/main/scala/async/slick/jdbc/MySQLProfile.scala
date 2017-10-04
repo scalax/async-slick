@@ -139,7 +139,13 @@ trait MySQLProfile extends JdbcProfile { self =>
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new MySQLColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
-  override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
+  //TODO schema 方法未做数据库多样性处理
+  override def createSequenceDDLBuilder(seq: Sequence[_]): MySQLSequenceDDLBuilder[_] = {
+    def create1[T](seq1: Sequence[T]): MySQLSequenceDDLBuilder[T] = new MySQLSequenceDDLBuilder(seq1) {
+      override val sqlUtilsComponent = self.sqlUtilsComponent
+    }
+    create1(seq)
+  }
 
   //override def quoteIdentifier(id: String) = '`' + id + '`'
 
@@ -272,7 +278,7 @@ trait MySQLProfile extends JdbcProfile { self =>
       if (unique) sb append " UNIQUE"
     }
   }*/
-  class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
+  /*class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       import seq.integral._
       val sqlType = JdbcTypeHelper.jdbcTypeFor(seq.tpe).sqlTypeName(None)
@@ -307,7 +313,7 @@ trait MySQLProfile extends JdbcProfile { self =>
         )
       )
     }
-  }
+  }*/
   /*class JdbcTypes extends super.JdbcTypes {
     override val stringJdbcType = new StringJdbcType {
       override def valueToSQLLiteral(value: String) = if (value eq null) "NULL" else {

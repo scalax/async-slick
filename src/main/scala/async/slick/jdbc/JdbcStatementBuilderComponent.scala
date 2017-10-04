@@ -27,7 +27,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
   //def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
   def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder //= new TableDDLBuilder(table)
   def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder //= new ColumnDDLBuilder(column)
-  def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
+  def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder //= new SequenceDDLBuilder(seq)
 
   /*class JdbcCompiledInsert(source: Node) {
     class Artifacts(val compiled: Node, val converter: ResultConverter[JdbcResultConverterDomain, Any], val ibr: InsertBuilderResult) {
@@ -763,7 +763,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
   }*/
 
   /** Builder for DDL statements for sequences. */
-  class SequenceDDLBuilder(seq: Sequence[_]) {
+  /*class SequenceDDLBuilder(seq: Sequence[_]) {
     def buildDDL: DDL = {
       val b = new StringBuilder append "create sequence " append sqlUtilsComponent.quoteIdentifier(seq.name)
       seq._increment.foreach { b append " increment " append _ }
@@ -773,7 +773,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
       if (seq._cycle) b append " cycle"
       DDL(b.toString, "drop sequence " + sqlUtilsComponent.quoteIdentifier(seq.name))
     }
-  }
+  }*/
 }
 
 class InsertBuilderResult(val table: TableNode, val sql: String, val fields: ConstArray[FieldSymbol]) {
