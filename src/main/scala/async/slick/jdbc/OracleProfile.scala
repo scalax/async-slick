@@ -125,7 +125,12 @@ trait OracleProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new OracleTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new OracleColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -177,7 +182,7 @@ trait OracleProfile extends JdbcProfile { self =>
     }
   }*/
 
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override val createPhase1 = super.createPhase1 ++ createAutoIncSequences
     override val dropPhase2 = dropAutoIncSequences ++ super.dropPhase2
 
@@ -218,7 +223,7 @@ trait OracleProfile extends JdbcProfile { self =>
         sb.toString
       } else super.createIndex(idx)
     }
-  }
+  }*/
 
   /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     var sequenceName: String = _

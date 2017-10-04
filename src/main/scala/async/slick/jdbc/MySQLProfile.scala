@@ -130,7 +130,12 @@ trait MySQLProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = profile.capabilitiesContent
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new MySQLTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new MySQLColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -249,15 +254,14 @@ trait MySQLProfile extends JdbcProfile { self =>
       new InsertBuilderResult(table, s"$start values $allVars on duplicate key update $update", syms)
     }
   }*/
-
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def dropForeignKey(fk: ForeignKey) = {
       "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP FOREIGN KEY " + sqlUtilsComponent.quoteIdentifier(fk.name)
     }
     override protected def dropPrimaryKey(pk: PrimaryKey): String = {
       "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP PRIMARY KEY"
     }
-  }
+  }*/
   /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {
       if (defaultLiteral ne null) sb append " DEFAULT " append defaultLiteral

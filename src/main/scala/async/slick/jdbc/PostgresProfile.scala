@@ -157,7 +157,12 @@ trait PostgresProfile extends JdbcProfile { self =>
   /*override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new PostgresTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new PostgresColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -228,7 +233,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms ++ nonAutoIncSyms.toSeq ++ pkSyms)
   }*/
 
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override def createPhase1 = super.createPhase1 ++ columns.flatMap {
       case cb: PostgresColumnDDLBuilder => cb.createLobTrigger(table.tableName)
     }
@@ -239,7 +244,7 @@ trait PostgresProfile extends JdbcProfile { self =>
       if (dropLobs.isEmpty) super.dropPhase1
       else Seq("delete from " + sqlUtilsComponent.quoteIdentifier(table.tableName)) ++ dropLobs ++ super.dropPhase1
     }
-  }
+  }*/
   /*abstract class PostgresColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuilder(column) {
     override def appendColumn(sb: StringBuilder) {
       sb append sqlUtilsComponent.quoteIdentifier(column.name) append ' '

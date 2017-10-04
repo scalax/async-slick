@@ -66,7 +66,12 @@ trait H2Profile extends JdbcProfile { self =>
       }
     }
   }*/
-
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new H2ModelBuilder(tables, ignoreInvalidDefaults)
 

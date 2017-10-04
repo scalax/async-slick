@@ -88,7 +88,12 @@ trait SQLServerProfile extends JdbcProfile { self =>
   override protected lazy val useServerSideUpsertReturning = false
   //override val columnTypes = new SQLServerJdbcTypes {}
 
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new SQLServerTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new SQLServerColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -160,7 +165,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     override protected def buildMergeEnd: String = super.buildMergeEnd + ";"
   }*/
 
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {
       val updateAction = fk.onUpdate.action
       val deleteAction = fk.onDelete.action
@@ -172,7 +177,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
       sb append ") on update " append (if (updateAction == "RESTRICT") "NO ACTION" else updateAction)
       sb append " on delete " append (if (deleteAction == "RESTRICT") "NO ACTION" else deleteAction)
     }
-  }
+  }*/
 
   /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {

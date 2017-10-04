@@ -165,7 +165,12 @@ trait SQLiteProfile extends JdbcProfile { self =>
   }
   override val api: API with SQLiteJdbcTypes = new API with SQLiteJdbcTypes {}
 
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new SQLiteTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new SQLiteColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -224,7 +229,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     override protected def emptyInsert: String = s"insert into $tableName default values"
   }*/
 
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected val foreignKeys = Nil // handled directly in addTableOptions
     override protected val primaryKeys = Nil // handled directly in addTableOptions
 
@@ -240,7 +245,7 @@ trait SQLiteProfile extends JdbcProfile { self =>
     }
 
     override def truncateTable = "delete from " + sqlUtilsComponent.quoteTableName(tableNode)
-  }
+  }*/
 
   /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {

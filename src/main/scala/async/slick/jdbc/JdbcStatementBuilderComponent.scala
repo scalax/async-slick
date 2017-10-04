@@ -25,7 +25,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
   //def createUpsertBuilder(node: Insert): InsertBuilder = ??? //= crudCompiler.createUpsertBuilder(node)
   //def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   //def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
-  def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder //= new TableDDLBuilder(table)
   def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder //= new ColumnDDLBuilder(column)
   def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
 
@@ -607,7 +607,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
   }*/
 
   /** Builder for various DDL statements. */
-  class TableDDLBuilder(val table: RelationalProfile#Table[_]) { self =>
+  /*class TableDDLBuilder(val table: RelationalProfile#Table[_]) { self =>
     protected val tableNode = table.toNode.asInstanceOf[TableExpansion].table.asInstanceOf[TableNode]
     protected val columns: Iterable[ColumnDDLBuilder] = table.create_*.map(fs => createColumnDDLBuilder(fs, table))
     protected val indexes: Iterable[Index] = table.indexes
@@ -708,7 +708,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
         case _ => throw new SlickException("Cannot use column " + c + " in " + typeInfo + " (only named columns are allowed)")
       }
     }
-  }
+  }*/
 
   /** Builder for column specifications in DDL statements. */
   /*class ColumnDDLBuilder(column: FieldSymbol) {

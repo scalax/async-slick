@@ -69,7 +69,12 @@ trait DB2Profile extends JdbcProfile { self =>
     override lazy val capabilitiesContent = self.capabilitiesContent
     override val scalarFrom = self.scalarFrom
   }
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new DB2TableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new DB2ColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -134,8 +139,7 @@ trait DB2Profile extends JdbcProfile { self =>
       }
     }
   }*/
-
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
       if (idx.unique) {
         /* Create a UNIQUE CONSTRAINT (with an automatically generated backing
@@ -153,7 +157,7 @@ trait DB2Profile extends JdbcProfile { self =>
     //For compatibility with all versions of DB2 
     //http://stackoverflow.com/questions/3006999/sql-query-to-truncate-table-in-ibm-db2
     override def truncateTable = s"DELETE FROM ${sqlUtilsComponent.quoteTableName(tableNode)}"
-  }
+  }*/
   /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override def appendColumn(sb: StringBuilder) {
       val qname = sqlUtilsComponent.quoteIdentifier(column.name)

@@ -70,7 +70,12 @@ trait HsqldbProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new HsqldbTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
 
   override protected lazy val useServerSideUpsert = true
@@ -141,8 +146,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
       override def sqlTypeName(sym: Option[FieldSymbol]) = "BINARY(16)"
     }
   }*/
-
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
       if (idx.unique) {
         /* Create a UNIQUE CONSTRAINT (with an automatically generated backing
@@ -156,8 +160,7 @@ trait HsqldbProfile extends JdbcProfile { self =>
         sb.toString
       } else super.createIndex(idx)
     }
-  }
-
+  }*/
   class SequenceDDLBuilder[T](seq: Sequence[T]) extends super.SequenceDDLBuilder(seq) {
     override def buildDDL: DDL = {
       import seq.integral._

@@ -118,7 +118,12 @@ trait DerbyProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = self.capabilitiesContent
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new DerbyTableDDLBuilder(table) {
+    override val sqlUtilsComponent = self.sqlUtilsComponent
+    override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]) = {
+      self.createColumnDDLBuilder(column, table)
+    }
+  }
   override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new DerbyColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
@@ -188,7 +193,7 @@ trait DerbyProfile extends JdbcProfile { self =>
     }
   }*/
 
-  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
+  /*class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def createIndex(idx: Index) = {
       if (idx.unique) {
         /* Create a UNIQUE CONSTRAINT (with an automatically generated backing
@@ -202,7 +207,7 @@ trait DerbyProfile extends JdbcProfile { self =>
         sb.toString
       } else super.createIndex(idx)
     }
-  }
+  }*/
   /*class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     override protected def appendOptions(sb: StringBuilder) {
       if (defaultLiteral ne null) sb append " DEFAULT " append defaultLiteral
