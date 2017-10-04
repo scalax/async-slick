@@ -2,15 +2,10 @@ package slick.async.jdbc
 
 import scala.concurrent.ExecutionContext
 import slick.ast._
-import slick.compiler.{ CompilerState, Phase }
 import slick.async.dbio._
 import slick.async.jdbc.config._
 import slick.async.jdbc.meta.MTable
-import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
-import slick.lifted._
-import slick.relational.RelationalCapabilities
-import slick.basic.Capability
-import slick.util.MacroSupport.macroSupportInterpolation
+import slick.async.relational.RelationalProfile
 
 /**
  * Slick profile for IBM DB2 UDB.
