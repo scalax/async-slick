@@ -137,21 +137,21 @@ object SqlProfile {
     override def namedSymbolName(s: Symbol) = quoteIdentifier(s.name)
   }
 }*/
-trait SqlTableComponent extends RelationalTableComponent { self: SqlProfile =>
+trait SqlTableComponent extends RelationalTableComponent { self =>
 
   /*trait ColumnOptions extends super.ColumnOptions {
     def SqlType(typeName: String) = SqlProfile.ColumnOption.SqlType(typeName)
   }
 
   override val columnOptions: ColumnOptions = new ColumnOptions {}*/
-  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
+  /*abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
     def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
     override def tableProvider: RelationalProfile = self
     override val O: SqlTableColumnOptions = new SqlTableColumnOptions {}
-  }
+  }*/
 }
 
-trait SqlActionComponent extends RelationalActionComponent { this: SqlProfile =>
+trait SqlActionComponent extends RelationalActionComponent { self =>
 
   //type ProfileAction[+R, +S <: NoStream, -E <: Effect] <: SqlAction[R, S, E]
   //type StreamingProfileAction[+R, +T, -E <: Effect] <: SqlStreamingAction[R, T, E] with ProfileAction[R, Streaming[T], E]

@@ -8,11 +8,11 @@ import slick.async.jdbc.config._
 import slick.compiler.{ CodeGen, CompilerState, QueryCompiler }
 import slick.lifted._
 import slick.relational.{ CompiledMapping, ResultConverter }
-import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
+import slick.async.relational.{ RelationalProfile, RelationalSequenceComponent, RelationalTableComponent }
 import slick.async.sql.SqlProfile
 import slick.util._
 
-trait JdbcStatementBuilderComponent { self: JdbcProfile =>
+trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =>
 
   val capabilitiesContent: BasicCapabilities
   val sqlUtilsComponent: BasicSqlUtilsComponent = new BasicSqlUtilsComponent {}
@@ -29,8 +29,8 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   //def createUpsertBuilder(node: Insert): InsertBuilder = ??? //= crudCompiler.createUpsertBuilder(node)
   //def createCheckInsertBuilder(node: Insert): InsertBuilder = new CheckInsertBuilder(node)
   //def createUpdateInsertBuilder(node: Insert): InsertBuilder = new UpdateInsertBuilder(node)
-  def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder //= new ColumnDDLBuilder(column)
+  def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder //= new ColumnDDLBuilder(column)
   def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
 
   class JdbcCompiledInsert(source: Node) {
@@ -611,7 +611,7 @@ trait JdbcStatementBuilderComponent { self: JdbcProfile =>
   }*/
 
   /** Builder for various DDL statements. */
-  class TableDDLBuilder(val table: RelationalTableComponent#Table[_]) { self =>
+  class TableDDLBuilder(val table: RelationalProfile#Table[_]) { self =>
     protected val tableNode = table.toNode.asInstanceOf[TableExpansion].table.asInstanceOf[TableNode]
     protected val columns: Iterable[ColumnDDLBuilder] = table.create_*.map(fs => createColumnDDLBuilder(fs, table))
     protected val indexes: Iterable[Index] = table.indexes

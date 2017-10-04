@@ -13,15 +13,14 @@ import slick.async.sql.SqlProfile
 import scala.reflect.ClassTag
 
 /** Abstract profile for accessing SQL databases via JDBC. */
-trait JdbcProfile extends SqlProfile with JdbcActionComponent
-    /*with JdbcInvokerComponent*/ with JdbcTypesComponent with JdbcModelComponent
-    /* internal: */ with JdbcStatementBuilderComponent /*with JdbcMappingCompilerComponent*/ { self =>
+trait JdbcProfile extends JdbcActionComponent
+    with JdbcStatementBuilderComponent with SqlProfile with JdbcTypesComponent with JdbcModelComponent /*with JdbcInvokerComponent*/ /* internal: */ /*with JdbcMappingCompilerComponent*/ { self =>
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   //override val profile: JdbcProfile = this
 
   type Backend = JdbcBackend
-  val backend: Backend = JdbcBackend
+  override val backend: Backend = JdbcBackend
   type ColumnType[T] = JdbcType[T]
   //type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
   //val columnTypes: slick.async.jdbc.JdbcTypes = new JdbcTypes {}
@@ -42,7 +41,7 @@ trait JdbcProfile extends SqlProfile with JdbcActionComponent
   def compileInsert(tree: Node) = new JdbcCompiledInsert(tree)
   type CompiledInsert = JdbcCompiledInsert
 
-  override final def buildTableSchemaDescription(table: RelationalTableComponent#Table[_]): DDL = createTableDDLBuilder(table).buildDDL
+  override final def buildTableSchemaDescription(table: RelationalProfile#Table[_]): DDL = createTableDDLBuilder(table).buildDDL
   final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL = createSequenceDDLBuilder(seq).buildDDL
 
   trait API extends LowPriorityAPI

@@ -2,15 +2,11 @@ package slick.async.basic
 
 import scala.language.{ existentials, higherKinds, implicitConversions }
 import slick.ast._
-import slick.compiler.QueryCompiler
 import slick.async.dbio._
-import slick.lifted._
 import slick.util.GlobalConfig
 import com.typesafe.config.Config
 import slick.async.jdbc.JdbcInvokerComponent
 import slick.async.jdbc.config._
-import slick.async.sql.{ FixedSqlAction, SqlProfile }
-import slick.basic.Capability
 
 /** The basic functionality that has to be implemented by all profiles. */
 trait BasicProfile extends BasicActionComponent { self =>
@@ -151,7 +147,7 @@ trait BasicProfile extends BasicActionComponent { self =>
   }
 }
 
-trait BasicActionComponent { self: BasicProfile =>
+trait BasicActionComponent { self =>
 
   //type ProfileAction[+R, +S <: NoStream, -E <: Effect] <: BasicAction[R, S, E]
   //type StreamingProfileAction[+R, +T, -E <: Effect] <: BasicStreamingAction[R, T, E] with ProfileAction[R, Streaming[T], E]

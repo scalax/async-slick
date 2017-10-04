@@ -9,7 +9,7 @@ import slick.lifted._
 import slick.relational._
 import slick.async.basic.BasicProfile
 import slick.async.jdbc.{ DDL, ImplicitColumnTypes, JdbcType }
-import slick.async.jdbc.config.{ BasicProfileAPI, ProfileTable, RelationalColumnOptions, RelationalQueryCompiler }
+import slick.async.jdbc.config._
 import slick.async.sql.{ FixedSqlAction, SqlProfile }
 
 import scala.language.{ higherKinds, implicitConversions }
@@ -22,14 +22,28 @@ import scala.reflect.ClassTag
  */
 trait RelationalProfile extends BasicProfile with RelationalTableComponent
     with RelationalSequenceComponent /*with RelationalTypesComponent*/
-    with RelationalActionComponent { self: RelationalProfile =>
+    with RelationalActionComponent { self =>
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   //override val profile: RelationalProfile = this
 
   type Backend <: RelationalBackend
 
+  def buildTableSchemaDescription(table: RelationalProfile#Table[_]): DDL
+
+  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends ProfileTable[T](_tableTag, _schemaName, _tableName) {
+    def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
+    override def tableProvider: RelationalProfile = self
+    override val O: RelationalColumnOptions = new SqlTableColumnOptions {}
+  }
+
   //override protected def computeCapabilities = super.computeCapabilities ++ RelationalCapabilities.all
+
+  /*abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends super.Table[T](_tableTag, _schemaName, _tableName) {
+    def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
+    override def tableProvider: RelationalProfile = self
+    override val O: SqlTableColumnOptions = new SqlTableColumnOptions {}
+  }*/
 
   trait RelationalAPI {
 
@@ -112,9 +126,9 @@ object RelationalProfile {
   }
 }
 
-trait RelationalTableComponent { self: RelationalProfile =>
+trait RelationalTableComponent { self =>
 
-  def buildTableSchemaDescription(table: RelationalTableComponent#Table[_]): DDL
+  //def buildTableSchemaDescription(table: RelationalTableComponent#Table[_]): DDL
   //SchemaDescription
 
   /*trait ColumnOptions {
@@ -128,11 +142,11 @@ trait RelationalTableComponent { self: RelationalProfile =>
   val columnOptions: ColumnOptions = new ColumnOptions {}*/
 
   //TODO 可否删除
-  abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends ProfileTable[T](_tableTag, _schemaName, _tableName) {
+  /*abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends ProfileTable[T](_tableTag, _schemaName, _tableName) {
     def this(_tableTag: Tag, _tableName: String) = this(_tableTag, None, _tableName)
     override def tableProvider: RelationalProfile = self
     override val O: RelationalColumnOptions = new RelationalColumnOptions {}
-  }
+  }*/
 
   /*abstract class Table[T](_tableTag: Tag, _schemaName: Option[String], _tableName: String) extends AbstractTable[T](_tableTag, _schemaName, _tableName) { table =>
     final type TableElementType = T
@@ -170,7 +184,7 @@ trait RelationalTableComponent { self: RelationalProfile =>
   }*/
 }
 
-trait RelationalSequenceComponent { self: RelationalProfile =>
+trait RelationalSequenceComponent { self =>
 
   def buildSequenceSchemaDescription(seq: Sequence[_]): DDL
 
@@ -231,7 +245,7 @@ trait RelationalSequenceComponent { self: RelationalProfile =>
     implicit def stringColumnType: BaseColumnType[String]
   }*/
 //}
-trait RelationalActionComponent extends BasicActionComponent { self: RelationalProfile =>
+trait RelationalActionComponent extends BasicActionComponent with BasicProfile { self =>
 
   //////////////////////////////////////////////////////////// Insert Actions
 

@@ -157,8 +157,8 @@ trait PostgresProfile extends JdbcProfile { self =>
   /*override def createUpsertBuilder(node: Insert): InsertBuilder = new PostgresUpsertBuilder(node) {
     override lazy val sqlUtilsComponent = self.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new PostgresColumnDDLBuilder(column) {
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new PostgresColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
   override protected lazy val useServerSideUpsert = true
@@ -228,7 +228,7 @@ trait PostgresProfile extends JdbcProfile { self =>
     override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms ++ nonAutoIncSyms.toSeq ++ pkSyms)
   }*/
 
-  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override def createPhase1 = super.createPhase1 ++ columns.flatMap {
       case cb: PostgresColumnDDLBuilder => cb.createLobTrigger(table.tableName)
     }

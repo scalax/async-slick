@@ -130,8 +130,8 @@ trait MySQLProfile extends JdbcProfile { self =>
     override lazy val commonCapabilities = profile.capabilitiesContent
     override lazy val sqlUtilsComponent = profile.sqlUtilsComponent
   }*/
-  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new MySQLColumnDDLBuilder(column) {
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new MySQLColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
   override def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder[_] = new SequenceDDLBuilder(seq)
@@ -250,7 +250,7 @@ trait MySQLProfile extends JdbcProfile { self =>
     }
   }*/
 
-  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def dropForeignKey(fk: ForeignKey) = {
       "ALTER TABLE " + sqlUtilsComponent.quoteIdentifier(table.tableName) + " DROP FOREIGN KEY " + sqlUtilsComponent.quoteIdentifier(fk.name)
     }

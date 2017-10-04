@@ -88,8 +88,8 @@ trait SQLServerProfile extends JdbcProfile { self =>
   override protected lazy val useServerSideUpsertReturning = false
   //override val columnTypes = new SQLServerJdbcTypes {}
 
-  override def createTableDDLBuilder(table: RelationalTableComponent#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
-  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalTableComponent#Table[_]): ColumnDDLBuilder = new SQLServerColumnDDLBuilder(column) {
+  override def createTableDDLBuilder(table: RelationalProfile#Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder = new SQLServerColumnDDLBuilder(column) {
     override val sqlUtilsComponent = self.sqlUtilsComponent
   }
 
@@ -160,7 +160,7 @@ trait SQLServerProfile extends JdbcProfile { self =>
     override protected def buildMergeEnd: String = super.buildMergeEnd + ";"
   }*/
 
-  class TableDDLBuilder(table: RelationalTableComponent#Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: RelationalProfile#Table[_]) extends super.TableDDLBuilder(table) {
     override protected def addForeignKey(fk: ForeignKey, sb: StringBuilder) {
       val updateAction = fk.onUpdate.action
       val deleteAction = fk.onDelete.action

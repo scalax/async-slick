@@ -2,7 +2,7 @@ package slick.async.jdbc.config
 
 import slick.ast._
 import slick.async.jdbc.{ JdbcTypes, OracleProfile }
-import slick.async.relational.RelationalTableComponent
+import slick.async.relational.{ RelationalProfile, RelationalTableComponent }
 
 abstract class OracleColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuilder(column) {
   var sequenceName: String = _
@@ -31,7 +31,7 @@ abstract class OracleColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuil
     case _ => super.handleColumnOption(o)
   }
 
-  def createSequenceAndTrigger(t: RelationalTableComponent#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
+  def createSequenceAndTrigger(t: RelationalProfile#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
     val tab = sqlUtilsComponent.quoteIdentifier(t.tableName)
     val seq = sqlUtilsComponent.quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
     val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
@@ -43,7 +43,7 @@ abstract class OracleColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuil
     )
   }
 
-  def dropTriggerAndSequence(t: RelationalTableComponent#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
+  def dropTriggerAndSequence(t: RelationalProfile#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
     val seq = sqlUtilsComponent.quoteIdentifier(if (sequenceName eq null) t.tableName + "__" + column.name + "_seq" else sequenceName)
     val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
     Seq(
