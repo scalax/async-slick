@@ -19,7 +19,7 @@ trait JdbcProfile extends JdbcActionComponent
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   //override val profile: JdbcProfile = this
 
-  type Backend = JdbcBackend
+  override type Backend = JdbcBackend
   override val backend: Backend = JdbcBackend
   type ColumnType[T] = JdbcType[T]
   //type BaseColumnType[T] = JdbcType[T] with BaseTypedType[T]
@@ -38,8 +38,11 @@ trait JdbcProfile extends JdbcActionComponent
   //lazy val upsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(crudCompiler.createUpsertBuilder))
   //lazy val checkInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.PrimaryKeys), new JdbcInsertCodeGen(createCheckInsertBuilder))
   //lazy val updateInsertCompiler = QueryCompiler(Phase.assignUniqueSymbols, Phase.inferTypes, new InsertCompiler(InsertCompiler.AllColumns), new JdbcInsertCodeGen(createUpdateInsertBuilder))
-  def compileInsert(tree: Node) = new JdbcCompiledInsert(tree)
-  type CompiledInsert = JdbcCompiledInsert
+  def compileInsert(tree: Node): JdbcCompiledInsert = new JdbcCompiledInsert(tree) {
+    override val crudCompiler = self.crudCompiler
+    override val capabilitiesContent = self.capabilitiesContent
+  }
+  override type CompiledInsert = JdbcCompiledInsert
 
   override final def buildTableSchemaDescription(table: RelationalProfile#Table[_]): DDL = createTableDDLBuilder(table).buildDDL
   final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL = createSequenceDDLBuilder(seq).buildDDL

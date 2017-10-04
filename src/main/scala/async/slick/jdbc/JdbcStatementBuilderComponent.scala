@@ -3,13 +3,9 @@ package slick.async.jdbc
 import scala.language.existentials
 import slick.SlickException
 import slick.ast._
-import slick.ast.Util.nodeToNodeOps
 import slick.async.jdbc.config._
-import slick.compiler.{ CodeGen, CompilerState, QueryCompiler }
 import slick.lifted._
-import slick.relational.{ CompiledMapping, ResultConverter }
-import slick.async.relational.{ RelationalProfile, RelationalSequenceComponent, RelationalTableComponent }
-import slick.async.sql.SqlProfile
+import slick.async.relational.{ RelationalProfile, RelationalSequenceComponent }
 import slick.util._
 
 trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =>
@@ -33,7 +29,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
   def createColumnDDLBuilder(column: FieldSymbol, table: RelationalProfile#Table[_]): ColumnDDLBuilder //= new ColumnDDLBuilder(column)
   def createSequenceDDLBuilder(seq: Sequence[_]): SequenceDDLBuilder = new SequenceDDLBuilder(seq)
 
-  class JdbcCompiledInsert(source: Node) {
+  /*class JdbcCompiledInsert(source: Node) {
     class Artifacts(val compiled: Node, val converter: ResultConverter[JdbcResultConverterDomain, Any], val ibr: InsertBuilderResult) {
       def table: TableNode = ibr.table
       def sql: String = ibr.sql
@@ -75,7 +71,7 @@ trait JdbcStatementBuilderComponent extends RelationalSequenceComponent { self =
         throw new SlickException("This DBMS allows only a single column to be returned from an INSERT, and that column must be an AutoInc column.")
       (ibr.fields.map(_.name), rconv.asInstanceOf[ResultConverter[JdbcResultConverterDomain, _]], returnOther)
     }
-  }
+  }*/
 
   /*abstract class StatementPart
   case object SelectPart extends StatementPart

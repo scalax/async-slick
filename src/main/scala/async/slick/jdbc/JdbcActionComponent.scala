@@ -12,12 +12,16 @@ import slick.async.dbio._
 import slick.ast._
 import slick.ast.Util._
 import slick.ast.TypeUtil.:@
-import slick.async.jdbc.config.{ BasicCapabilities, QueryActionExtensionMethodsImpl, SimpleJdbcProfileAction, StreamingQueryActionExtensionMethodsImpl }
+import slick.async.jdbc.config._
 import slick.lifted.{ CompiledStreamingExecutable, FlatShapeLevel, Query, Shape }
 import slick.relational.{ CompiledMapping, ResultConverter }
 import slick.util.{ DumpInfo, SQLBuilder, ignoreFollowOnError }
 
-trait JdbcActionComponent extends SqlActionComponent { self: JdbcProfile =>
+trait JdbcActionComponent extends SqlActionComponent { self =>
+
+  override type Backend = JdbcBackend
+  override val backend: Backend = JdbcBackend
+  override type CompiledInsert = JdbcCompiledInsert
 
   val capabilitiesContent: BasicCapabilities
   //type ProfileAction[+R, +S <: NoStream, -E <: Effect] = FixedSqlAction[R, S, E]
