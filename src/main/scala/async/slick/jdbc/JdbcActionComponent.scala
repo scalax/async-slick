@@ -1,20 +1,15 @@
 package slick.async.jdbc
 
-import slick.async.sql.{ FixedSqlAction, FixedSqlStreamingAction, SqlActionComponent, SqlProfile }
+import slick.async.sql.{ FixedSqlAction, SqlActionComponent }
 
 import scala.language.{ existentials, higherKinds }
 import java.sql.{ PreparedStatement, Statement }
 
-import scala.collection.mutable.Builder
-import scala.util.control.NonFatal
 import slick.SlickException
 import slick.async.dbio._
 import slick.ast._
-import slick.ast.Util._
-import slick.ast.TypeUtil.:@
 import slick.async.jdbc.config._
 import slick.lifted.{ CompiledStreamingExecutable, FlatShapeLevel, Query, Shape }
-import slick.relational.{ CompiledMapping, ResultConverter }
 import slick.util.{ DumpInfo, SQLBuilder, ignoreFollowOnError }
 
 trait JdbcActionComponent extends SqlActionComponent { self =>
