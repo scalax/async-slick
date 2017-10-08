@@ -39,8 +39,7 @@ abstract class OracleColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuil
     Seq(
       s"create sequence $seq start with 1 increment by 1",
       s"create or replace trigger $trg before insert on $tab referencing new as new for each row" +
-        s" when (new.$col is null) begin select $seq.nextval into :new.$col from sys.dual; end;"
-    )
+        s" when (new.$col is null) begin select $seq.nextval into :new.$col from sys.dual; end;")
   }
 
   def dropTriggerAndSequence(t: RelationalProfile#Table[_]): Iterable[String] = if (!autoIncrement) Nil else {
@@ -48,7 +47,6 @@ abstract class OracleColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBuil
     val trg = sqlUtilsComponent.quoteIdentifier(if (triggerName eq null) t.tableName + "__" + column.name + "_trg" else triggerName)
     Seq(
       s"drop trigger $trg",
-      s"drop sequence $seq"
-    )
+      s"drop sequence $seq")
   }
 }

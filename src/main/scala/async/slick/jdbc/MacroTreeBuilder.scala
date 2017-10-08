@@ -42,8 +42,7 @@ private[jdbc] class MacroTreeBuilder[C <: Context](val c: C)(paramsList: List[C#
    * scala.Predef.implicitly[GetResult[Int]]
    */
   def implicitTree(reqType: Tree, baseType: Tree) = TypeApply(
-    ImplicitlyTree, List(AppliedTypeTree(baseType, List(reqType)))
-  )
+    ImplicitlyTree, List(AppliedTypeTree(baseType, List(reqType))))
 
   //Some commonly used trees that are created on demand
   lazy val GetResultTypeTree = createClassTreeFromString("slick.jdbc.GetResult", TypeName(_))
@@ -77,8 +76,7 @@ private[jdbc] class MacroTreeBuilder[C <: Context](val c: C)(paramsList: List[C#
       case n if (n <= 22) =>
         implicitTree(AppliedTypeTree(
           Select(Select(Ident(termNames.ROOTPKG), TermName("scala")), TypeName("Tuple" + resultTypes.size)),
-          resultTypeTrees.toList
-        ), GetResultTypeTree)
+          resultTypeTrees.toList), GetResultTypeTree)
       case n =>
         val rtypeTree = {
           val zero = TypeTree(typeOf[slick.collection.heterogeneous.syntax.HNil])
@@ -93,27 +91,21 @@ private[jdbc] class MacroTreeBuilder[C <: Context](val c: C)(paramsList: List[C#
         Apply(
           TypeApply(
             Select(GetResultTree, TermName("apply")),
-            List(rtypeTree)
-          ),
+            List(rtypeTree)),
           List(
             Function(
               List(ValDef(Modifiers(Flag.PARAM), TermName("p"), TypeTree(), EmptyTree)),
               Block(
                 zipped.map { tup =>
-                val (i: Int, typ: Tree) = tup
-                ValDef(Modifiers(), TermName("gr" + i), TypeTree(), implicitTree(typ, GetResultTypeTree))
-              }.toList,
+                  val (i: Int, typ: Tree) = tup
+                  ValDef(Modifiers(), TermName("gr" + i), TypeTree(), implicitTree(typ, GetResultTypeTree))
+                }.toList,
                 zipped.foldRight[Tree](zero) { (tup, prev) =>
                   val (i: Int, typ: Tree) = tup
                   Block(
                     List(ValDef(Modifiers(), TermName("pv" + i), TypeTree(), Apply(<<, List(Ident(TermName("gr" + i)))))),
-                    Apply(Select(prev, TermName("$colon$colon")), List(Ident(TermName("pv" + i))))
-                  )
-                }
-              )
-            )
-          )
-        )
+                    Apply(Select(prev, TermName("$colon$colon")), List(Ident(TermName("pv" + i)))))
+                }))))
     }
   }
 
@@ -156,10 +148,8 @@ private[jdbc] class MacroTreeBuilder[C <: Context](val c: C)(paramsList: List[C#
               Apply(
                 Select(
                   implicitTree(TypeTree(param.actualType), SetParameterTypeTree),
-                  TermName("applied")
-                ),
-                List(param.tree)
-              )
+                  TermName("applied")),
+                List(param.tree))
             }
           }
       }
@@ -172,18 +162,12 @@ private[jdbc] class MacroTreeBuilder[C <: Context](val c: C)(paramsList: List[C#
             Function(
               List(
                 ValDef(Modifiers(Flag.PARAM), TermName("u"), TypeTree(), EmptyTree),
-                ValDef(Modifiers(Flag.PARAM), TermName("pp"), TypeTree(), EmptyTree)
-              ),
+                ValDef(Modifiers(Flag.PARAM), TermName("pp"), TypeTree(), EmptyTree)),
               Block(
                 remaining.toList map (sp =>
                   Apply(
                     Select(sp.tree, TermName("apply")),
-                    List(Ident(TermName("u")), Ident(TermName("pp")))
-                  )), Literal(Constant(()))
-              )
-            )
-          )
-        )
+                    List(Ident(TermName("u")), Ident(TermName("pp"))))), Literal(Constant(()))))))
       (fuse(queryString.result()), pconv)
     }
   }

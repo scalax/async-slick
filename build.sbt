@@ -19,17 +19,17 @@ libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
 lazy val fmpp = TaskKey[Seq[File]]("fmpp")
-lazy val fmppConfig = config("fmpp").hide
+lazy val FmppConfig = config("fmpp").hide
 lazy val fmppSettings = inConfig(Compile)(Seq(sourceGenerators += fmpp.taskValue, fmpp := fmppTask.value)) ++ Seq(
   libraryDependencies ++= Seq(
-    ("net.sourceforge.fmpp" % "fmpp" % "0.9.15" % fmppConfig.name).intransitive,
-    "org.freemarker" % "freemarker" % "2.3.23" % fmppConfig.name,
-    "oro" % "oro" % "2.0.8" % fmppConfig.name,
-    "org.beanshell" % "bsh" % "2.0b5" % fmppConfig.name,
-    "xml-resolver" % "xml-resolver" % "1.2" % fmppConfig.name
+    ("net.sourceforge.fmpp" % "fmpp" % "0.9.15" % FmppConfig.name).intransitive,
+    "org.freemarker" % "freemarker" % "2.3.23" % FmppConfig.name,
+    "oro" % "oro" % "2.0.8" % FmppConfig.name,
+    "org.beanshell" % "bsh" % "2.0b5" % FmppConfig.name,
+    "xml-resolver" % "xml-resolver" % "1.2" % FmppConfig.name
   ),
-  ivyConfigurations += fmppConfig,
-  fullClasspath in fmppConfig := update.map { _ select configurationFilter(fmppConfig.name) map Attributed.blank }.value,
+  ivyConfigurations += FmppConfig,
+  fullClasspath in FmppConfig := update.map { _ select configurationFilter(FmppConfig.name) map Attributed.blank }.value,
   mappings in (Compile, packageSrc) ++= {
     val fmppSrc = (sourceDirectory in Compile).value / "scala"
     val inFiles = fmppSrc ** "*.fm"
@@ -42,11 +42,15 @@ lazy val fmppTask = Def.task {
   val output = sourceManaged.value
   val fmppSrc = sourceDirectory.value / "scala"
   val inFiles = (fmppSrc ** "*.fm").get.toSet
-  val cachedFun = FileFunction.cached(s.cacheDirectory / "fmpp", outStyle = FilesInfo.exists) { (in: Set[File]) =>
+
+  val fmmpRunner = (runner in fmpp).value
+  val currentFullClasspath = (fullClasspath in FmppConfig).value
+
+  val cachedFun = FileFunction.cached(s.cacheDirectory / "fmpp", inStyle = FilesInfo.exists, outStyle = FilesInfo.exists) { (in: Set[File]) =>
     IO.delete((output ** "*.scala").get)
     val args = "--expert" :: "-q" :: "-S" :: fmppSrc.getPath :: "-O" :: output.getPath ::
       "--replace-extensions=fm, scala" :: "-M" :: "execute(**/*.fm), ignore(**/*)" :: Nil
-    toError((runner in fmpp).value.run("fmpp.tools.CommandLine", (fullClasspath in fmppConfig).value.files, args, s.log))
+    /*toError*/(fmmpRunner.run("fmpp.tools.CommandLine", currentFullClasspath.files, args, s.log))
     (output ** "*.scala").get.toSet
   }
   cachedFun(inFiles).toSeq

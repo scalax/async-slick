@@ -43,8 +43,7 @@ object ActionFunctionHelper {
 
   implicit def DBIOActionFunction(
     implicit
-    profile: JdbcProfile
-  ): ActionFunction[StreamingDBIO] = new ActionFunction[StreamingDBIO] {
+    profile: JdbcProfile): ActionFunction[StreamingDBIO] = new ActionFunction[StreamingDBIO] {
     self =>
 
     val jdbcProfile = profile
@@ -63,8 +62,7 @@ object ActionFunctionHelper {
           val wrap = queryWrap.asInstanceOf[SlickQueryUpdate]
           wrap.query.update(wrap.data).asInstanceOf[StreamingDBIO[F, G]]
         }
-      }
-    )
+      })
 
     override def actionToSetOnly[S, T <: NoStream](action: StreamingDBIO[S, T]): StreamingDBIO[S, NoStream] = {
       action
@@ -74,8 +72,7 @@ object ActionFunctionHelper {
 
   implicit def syncActionFunction(
     implicit
-    profile: JdbcProfile
-  ): ActionFunction[SessionConn] = new ActionFunction[SessionConn] {
+    profile: JdbcProfile): ActionFunction[SessionConn] = new ActionFunction[SessionConn] {
     self =>
 
     val jdbcProfile = profile
@@ -111,8 +108,7 @@ object ActionFunctionHelper {
             }
           }.asInstanceOf[SessionConn[F, G]]
         }
-      }
-    )
+      })
 
     override def actionToSetOnly[S, T <: NoStream](action: SessionConn[S, T]): SessionConn[S, NoStream] = {
       new SessionConn[S, NoStream] {

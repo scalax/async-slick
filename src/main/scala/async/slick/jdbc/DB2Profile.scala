@@ -155,7 +155,7 @@ trait DB2Profile extends JdbcProfile { self =>
       } else super.createIndex(idx)
     }
 
-    //For compatibility with all versions of DB2 
+    //For compatibility with all versions of DB2
     //http://stackoverflow.com/questions/3006999/sql-query-to-truncate-table-in-ibm-db2
     override def truncateTable = s"DELETE FROM ${sqlUtilsComponent.quoteTableName(tableNode)}"
   }*/

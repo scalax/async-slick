@@ -25,7 +25,6 @@ abstract class DriverJdbcType[@specialized T](implicit val classTag: ClassTag[T]
     case java.sql.Types.DECIMAL => "DECIMAL(21,2)"
     case t => JdbcTypesComponent.typeNames.getOrElse(
       t,
-      throw new SlickException("No SQL type name found in java.sql.Types for code " + t)
-    )
+      throw new SlickException("No SQL type name found in java.sql.Types for code " + t))
   }
 }

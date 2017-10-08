@@ -14,8 +14,7 @@ case class MTablePrivilege(table: MQName, privilege: MPrivilege)
 
 object MTablePrivilege {
   def getTablePrivileges(tablePattern: MQName) = ResultSetAction[MTablePrivilege](
-    _.metaData.getTablePrivileges(tablePattern.catalog_?, tablePattern.schema_?, tablePattern.name)
-  ) { r =>
+    _.metaData.getTablePrivileges(tablePattern.catalog_?, tablePattern.schema_?, tablePattern.name)) { r =>
       MTablePrivilege(MQName.from(r), MPrivilege.from(r))
     }
 }
@@ -25,8 +24,7 @@ case class MColumnPrivilege(table: MQName, column: String, privilege: MPrivilege
 
 object MColumnPrivilege {
   def getColumnPrivileges(tablePattern: MQName, columnPattern: String) = ResultSetAction[MColumnPrivilege](
-    _.metaData.getColumnPrivileges(tablePattern.catalog_?, tablePattern.schema_?, tablePattern.name, columnPattern)
-  ) { r =>
+    _.metaData.getColumnPrivileges(tablePattern.catalog_?, tablePattern.schema_?, tablePattern.name, columnPattern)) { r =>
       MColumnPrivilege(MQName.from(r), r.<<, MPrivilege.from(r))
     }
 }

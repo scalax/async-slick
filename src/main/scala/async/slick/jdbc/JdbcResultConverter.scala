@@ -61,9 +61,8 @@ class DefaultingResultConverter[@specialized(Byte, Short, Int, Long, Char, Float
   def set(value: T, pp: PreparedStatement) = ti.setValue(value, pp, idx)
   override def getDumpInfo = super.getDumpInfo.copy(
     mainInfo = s"idx=$idx, default=" +
-    { try default() catch { case e: Throwable => "[" + e.getClass.getName + "]" } },
-    attrInfo = ": " + ti
-  )
+      { try default() catch { case e: Throwable => "[" + e.getClass.getName + "]" } },
+    attrInfo = ": " + ti)
   def width = 1
 }
 

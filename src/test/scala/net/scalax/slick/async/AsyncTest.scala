@@ -19,8 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 case class Friends(
   id: Option[Long] = None,
   name: String,
-  nick: String
-)
+  nick: String)
 
 class FriendTable(tag: slick.lifted.Tag) extends Table[Friends](tag, "firend") {
   def id = column[Long]("id", O.AutoInc)
@@ -31,11 +30,11 @@ class FriendTable(tag: slick.lifted.Tag) extends Table[Friends](tag, "firend") {
 }
 
 class AsyncTest extends FlatSpec
-    with Matchers
-    with EitherValues
-    with ScalaFutures
-    with BeforeAndAfterAll
-    with BeforeAndAfter {
+  with Matchers
+  with EitherValues
+  with ScalaFutures
+  with BeforeAndAfterAll
+  with BeforeAndAfter {
 
   val t = 10.seconds
   override implicit val patienceConfig = PatienceConfig(timeout = t)

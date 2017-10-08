@@ -163,13 +163,12 @@ class JdbcModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(imp
    * @group Basic customization overrides
    */
   class TableBuilder(
-      val meta: MTable,
-      val namer: TableNamer,
-      val mColumns: Seq[MColumn],
-      val mPrimaryKeys: Seq[MPrimaryKey],
-      val mForeignKeys: Seq[Seq[MForeignKey]],
-      val mIndices: Seq[Seq[MIndexInfo]]
-  ) { table =>
+    val meta: MTable,
+    val namer: TableNamer,
+    val mColumns: Seq[MColumn],
+    val mPrimaryKeys: Seq[MPrimaryKey],
+    val mForeignKeys: Seq[Seq[MForeignKey]],
+    val mIndices: Seq[Seq[MIndexInfo]]) { table =>
 
     // models
     def buildModel(builders: Builders) = m.Table(namer.qualifiedName, columns, primaryKey, buildForeignKeys(builders), indices)
@@ -280,8 +279,7 @@ class JdbcModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(imp
       default.map(d =>
         RelationalProfile.ColumnOption.Default(
           if (nullable) d
-          else d.getOrElse(throw new SlickException(s"Invalid default value $d for non-nullable column ${tableBuilder.namer.qualifiedName.asString}.$name of type $tpe, meta data: " + meta.toString))
-        ))
+          else d.getOrElse(throw new SlickException(s"Invalid default value $d for non-nullable column ${tableBuilder.namer.qualifiedName.asString}.$name of type $tpe, meta data: " + meta.toString))))
     }
 
     private def convenientDefault: Option[RelationalProfile.ColumnOption.Default[_]] =
@@ -299,11 +297,11 @@ class JdbcModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(imp
 
     def model = m.Column(name = name, table = tableBuilder.namer.qualifiedName, tpe = tpe, nullable = nullable,
       options = Set() ++
-      dbType.map(SqlProfile.ColumnOption.SqlType) ++
-      (if (autoInc) Some(ColumnOption.AutoInc) else None) ++
-      (if (createPrimaryKeyColumnOption) Some(ColumnOption.PrimaryKey) else None) ++
-      length.map(RelationalProfile.ColumnOption.Length.apply(_, varying = varying)) ++
-      (if (!autoInc) convenientDefault else None))
+        dbType.map(SqlProfile.ColumnOption.SqlType) ++
+        (if (autoInc) Some(ColumnOption.AutoInc) else None) ++
+        (if (createPrimaryKeyColumnOption) Some(ColumnOption.PrimaryKey) else None) ++
+        length.map(RelationalProfile.ColumnOption.Length.apply(_, varying = varying)) ++
+        (if (!autoInc) convenientDefault else None))
   }
 
   class PrimaryKeyBuilder(tableBuilder: TableBuilder, meta: Seq[MPrimaryKey]) {
@@ -316,8 +314,7 @@ class JdbcModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(imp
     def columns = meta.map(_.column)
     // single column primary keys excluded in favor of PrimaryKey column option
     final def model: Option[m.PrimaryKey] = if (!enabled) None else Some(
-      m.PrimaryKey(name, tableBuilder.namer.qualifiedName, columns.map(tableBuilder.columnsByName))
-    )
+      m.PrimaryKey(name, tableBuilder.namer.qualifiedName, columns.map(tableBuilder.columnsByName)))
   }
 
   class ForeignKeyBuilder(tableBuilder: TableBuilder, meta: Seq[MForeignKey]) {
@@ -340,8 +337,7 @@ class JdbcModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(imp
         tableNamersByQName(fk.pkTable).qualifiedName,
         referencingColumns.map(builders.tablesByQName(fk.pkTable).columnsByName),
         updateRule,
-        deleteRule
-      ))
+        deleteRule))
     }
   }
 
@@ -365,8 +361,7 @@ class JdbcModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(imp
       // postgres may refer to column oid, skipping index for now. Maybe we should generate a column and include it
       // instead. And maybe this should be moved into PostgresModelBuilder.
       // TODO: This needs a test case!
-      columns.forall(tableBuilder.columnsByName.isDefinedAt)
-    )
+      columns.forall(tableBuilder.columnsByName.isDefinedAt))
 
     def unique = !idx.nonUnique
     def columns = meta.flatMap(_.column)

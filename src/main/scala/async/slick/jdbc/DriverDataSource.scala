@@ -20,26 +20,25 @@ import scala.util.control.NonFatal
  * both stand-alone and as a source for a connection pool.
  */
 class DriverDataSource(
-    /** The JDBC URL (required) */
-    @BeanProperty @volatile var url: String,
-    /** Optional user name */
-    @BeanProperty @volatile var user: String = null,
-    /** Optional password */
-    @BeanProperty @volatile var password: String = null,
-    /** Optional connection properties */
-    @BeanProperty @volatile var properties: Properties = null,
-    /**
-     * Name of the `java.sql.Driver` class. This must be set unless a `driverObject` is set
-     * directly or the driver is already registered with the DriverManager.
-     */
-    @BeanProperty @volatile var driverClassName: String = null,
-    /** When `close()` is called, try to deregister a driver that was registered by this instance. */
-    @BeanProperty @volatile var deregisterDriver: Boolean = false,
-    /** The JDBC driver to use. If this is set, `driverClassName` will be ignored. */
-    @volatile var driverObject: Driver = null,
-    /** The ClassLoader that is used to load `driverClassName` */
-    @volatile var classLoader: ClassLoader = ClassLoaderUtil.defaultClassLoader
-) extends DataSource with Closeable with Logging {
+  /** The JDBC URL (required) */
+  @BeanProperty @volatile var url: String,
+  /** Optional user name */
+  @BeanProperty @volatile var user: String = null,
+  /** Optional password */
+  @BeanProperty @volatile var password: String = null,
+  /** Optional connection properties */
+  @BeanProperty @volatile var properties: Properties = null,
+  /**
+   * Name of the `java.sql.Driver` class. This must be set unless a `driverObject` is set
+   * directly or the driver is already registered with the DriverManager.
+   */
+  @BeanProperty @volatile var driverClassName: String = null,
+  /** When `close()` is called, try to deregister a driver that was registered by this instance. */
+  @BeanProperty @volatile var deregisterDriver: Boolean = false,
+  /** The JDBC driver to use. If this is set, `driverClassName` will be ignored. */
+  @volatile var driverObject: Driver = null,
+  /** The ClassLoader that is used to load `driverClassName` */
+  @volatile var classLoader: ClassLoader = ClassLoaderUtil.defaultClassLoader) extends DataSource with Closeable with Logging {
 
   def this() = this(null)
 

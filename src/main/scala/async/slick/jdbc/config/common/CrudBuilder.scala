@@ -126,8 +126,7 @@ abstract class UpdateInsertBuilder(ins: Insert) extends UpsertBuilder(ins) {
     new InsertBuilderResult(
       table,
       "update " + tableName + " set " + softNames.map(n => s"$n=?").mkString(",") + " where " + pkNames.map(n => s"$n=?").mkString(" and "),
-      ConstArray.from(softSyms ++ pkSyms)
-    )
+      ConstArray.from(softSyms ++ pkSyms))
 
   override def transformMapping(n: Node) = reorderColumns(n, softSyms ++ pkSyms)
 }

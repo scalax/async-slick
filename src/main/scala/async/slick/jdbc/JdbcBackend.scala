@@ -324,8 +324,7 @@ trait JdbcBackend extends RelationalBackend {
       sql: String,
       defaultType: ResultSetType = ResultSetType.ForwardOnly,
       defaultConcurrency: ResultSetConcurrency = ResultSetConcurrency.ReadOnly,
-      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default
-    ): PreparedStatement = {
+      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default): PreparedStatement = {
       JdbcBackend.logStatement("Preparing statement", sql)
       val s = loggingPreparedStatement(decorateStatement(resultSetHoldability.withDefault(defaultHoldability) match {
         case ResultSetHoldability.Default =>
@@ -363,20 +362,17 @@ trait JdbcBackend extends RelationalBackend {
     final def createStatement(
       defaultType: ResultSetType = ResultSetType.ForwardOnly,
       defaultConcurrency: ResultSetConcurrency = ResultSetConcurrency.ReadOnly,
-      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default
-    ): Statement = {
+      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default): Statement = {
       val s = loggingStatement(decorateStatement(resultSetHoldability.withDefault(defaultHoldability) match {
         case ResultSetHoldability.Default =>
           conn.createStatement(
             resultSetType.withDefault(defaultType).intValue,
-            resultSetConcurrency.withDefault(defaultConcurrency).intValue
-          )
+            resultSetConcurrency.withDefault(defaultConcurrency).intValue)
         case h =>
           conn.createStatement(
             resultSetType.withDefault(defaultType).intValue,
             resultSetConcurrency.withDefault(defaultConcurrency).intValue,
-            h.intValue
-          )
+            h.intValue)
       }))
       if (fetchSize != 0) s.setFetchSize(fetchSize)
       s
@@ -387,8 +383,7 @@ trait JdbcBackend extends RelationalBackend {
       sql: String,
       defaultType: ResultSetType = ResultSetType.ForwardOnly,
       defaultConcurrency: ResultSetConcurrency = ResultSetConcurrency.ReadOnly,
-      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default
-    )(f: (PreparedStatement => T)): T = {
+      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default)(f: (PreparedStatement => T)): T = {
       val st = prepareStatement(sql, defaultType, defaultConcurrency, defaultHoldability)
       try f(st) finally st.close()
     }
@@ -396,8 +391,7 @@ trait JdbcBackend extends RelationalBackend {
     /** A wrapper around the JDBC Connection's prepareInsertStatement method, that automatically closes the statement. */
     final def withPreparedInsertStatement[T](
       sql: String,
-      columnNames: Array[String] = new Array[String](0)
-    )(f: (PreparedStatement => T)): T = {
+      columnNames: Array[String] = new Array[String](0))(f: (PreparedStatement => T)): T = {
       val st = prepareInsertStatement(sql, columnNames)
       try f(st) finally st.close()
     }
@@ -405,8 +399,7 @@ trait JdbcBackend extends RelationalBackend {
     /** A wrapper around the JDBC Connection's prepareInsertStatement method, that automatically closes the statement. */
     final def withPreparedInsertStatement[T](
       sql: String,
-      columnIndexes: Array[Int]
-    )(f: (PreparedStatement => T)): T = {
+      columnIndexes: Array[Int])(f: (PreparedStatement => T)): T = {
       val st = prepareInsertStatement(sql, columnIndexes)
       try f(st) finally st.close()
     }
@@ -415,8 +408,7 @@ trait JdbcBackend extends RelationalBackend {
     final def withStatement[T](
       defaultType: ResultSetType = ResultSetType.ForwardOnly,
       defaultConcurrency: ResultSetConcurrency = ResultSetConcurrency.ReadOnly,
-      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default
-    )(f: (Statement => T)): T = {
+      defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default)(f: (Statement => T)): T = {
       val st = createStatement(defaultType, defaultConcurrency, defaultHoldability)
       try f(st) finally st.close()
     }
@@ -513,8 +505,7 @@ trait JdbcBackend extends RelationalBackend {
           if (p.statementInit eq null) curr.statementInit
           else if (curr.statementInit eq null) p.statementInit
           else { s => curr.statementInit(s); p.statementInit(s) },
-          p.fetchSize
-        )
+          p.fetchSize)
       } else p
       statementParameters = p2 :: (if (statementParameters eq null) Nil else statementParameters)
     }

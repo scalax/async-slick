@@ -495,15 +495,12 @@ trait SynchronousDatabaseAction[+R, +S <: NoStream, -B <: BasicBackend, -E <: Ef
     case a: SynchronousDatabaseAction.FusedAndThenAction[_, _, _, _] =>
       new SynchronousDatabaseAction.FusedAndThenAction[R2, S2, B, E with E2](
         self.asInstanceOf[SynchronousDatabaseAction[Any, S2, B, E with E2]] +:
-          a.as.asInstanceOf[IndexedSeq[SynchronousDatabaseAction[Any, S2, B, E with E2]]]
-      )
+          a.as.asInstanceOf[IndexedSeq[SynchronousDatabaseAction[Any, S2, B, E with E2]]])
     case a: SynchronousDatabaseAction[_, _, _, _] =>
       new SynchronousDatabaseAction.FusedAndThenAction[R2, S2, B, E with E2](
         Vector(
           self.asInstanceOf[SynchronousDatabaseAction[Any, S2, B, E with E2]],
-          a.asInstanceOf[SynchronousDatabaseAction[Any, S2, B, E with E2]]
-        )
-      )
+          a.asInstanceOf[SynchronousDatabaseAction[Any, S2, B, E with E2]]))
     case a => super.andThen[R2, S2, E2](a)
   }
 
@@ -596,13 +593,11 @@ object SynchronousDatabaseAction {
       case a: SynchronousDatabaseAction.FusedAndThenAction[_, _, _, _] =>
         new SynchronousDatabaseAction.FusedAndThenAction[R2, S2, B, E with E2](
           as.asInstanceOf[IndexedSeq[SynchronousDatabaseAction[Any, S2, B, E with E2]]] ++
-            a.as.asInstanceOf[IndexedSeq[SynchronousDatabaseAction[Any, S2, B, E with E2]]]
-        )
+            a.as.asInstanceOf[IndexedSeq[SynchronousDatabaseAction[Any, S2, B, E with E2]]])
       case a: SynchronousDatabaseAction[_, _, _, _] =>
         new SynchronousDatabaseAction.FusedAndThenAction[R2, S2, B, E with E2](
           as.asInstanceOf[IndexedSeq[SynchronousDatabaseAction[Any, S2, B, E with E2]]] :+
-            a.asInstanceOf[SynchronousDatabaseAction[Any, S2, B, E with E2]]
-        )
+            a.asInstanceOf[SynchronousDatabaseAction[Any, S2, B, E with E2]])
       case a => super.andThen(a)
     }
   }

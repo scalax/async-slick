@@ -11,8 +11,7 @@ import slick.model.ForeignKeyAction
 case class MForeignKey(
   pkTable: MQName, pkColumn: String, fkTable: MQName, fkColumn: String,
   keySeq: Short, updateRule: ForeignKeyAction, deleteRule: ForeignKeyAction,
-  fkName: Option[String], pkName: Option[String], deferrability: Short
-)
+  fkName: Option[String], pkName: Option[String], deferrability: Short)
 
 object MForeignKey {
 
@@ -25,8 +24,7 @@ object MForeignKey {
   def getCrossReference(parentTable: MQName, foreignTable: MQName) =
     createAction(_.metaData.getCrossReference(
       parentTable.catalog_?, parentTable.schema_?, parentTable.name,
-      foreignTable.catalog_?, foreignTable.schema_?, foreignTable.name
-    ))
+      foreignTable.catalog_?, foreignTable.schema_?, foreignTable.name))
 
   private[this] def createAction(f: JdbcBackend#Session => ResultSet) = ResultSetAction[MForeignKey](f) { r =>
     MForeignKey(MQName.from(r), r.<<, MQName.from(r), r.<<, r.<<, fkActionFor(r.<<), fkActionFor(r.<<), r.<<, r.<<, r.<<)

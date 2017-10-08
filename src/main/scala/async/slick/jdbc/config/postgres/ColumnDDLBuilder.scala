@@ -19,13 +19,11 @@ abstract class PostgresColumnDDLBuilder(column: FieldSymbol) extends ColumnDDLBu
   def createLobTrigger(tname: String): Option[String] =
     if (sqlType == "lo") Some(
       "create trigger " + lobTrigger(tname) + " before update or delete on " +
-        sqlUtilsComponent.quoteIdentifier(tname) + " for each row execute procedure lo_manage(" + sqlUtilsComponent.quoteIdentifier(column.name) + ")"
-    )
+        sqlUtilsComponent.quoteIdentifier(tname) + " for each row execute procedure lo_manage(" + sqlUtilsComponent.quoteIdentifier(column.name) + ")")
     else None
 
   def dropLobTrigger(tname: String): Option[String] =
     if (sqlType == "lo") Some(
-      "drop trigger " + lobTrigger(tname) + " on " + sqlUtilsComponent.quoteIdentifier(tname)
-    )
+      "drop trigger " + lobTrigger(tname) + " on " + sqlUtilsComponent.quoteIdentifier(tname))
     else None
 }

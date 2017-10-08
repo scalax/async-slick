@@ -21,8 +21,8 @@ import scala.reflect.ClassTag
  * It requires a relational table structure as its basic model of data.
  */
 trait RelationalProfile extends BasicProfile with RelationalTableComponent
-    with RelationalSequenceComponent /*with RelationalTypesComponent*/
-    with RelationalActionComponent { self =>
+  with RelationalSequenceComponent /*with RelationalTypesComponent*/
+  with RelationalActionComponent { self =>
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   //override val profile: RelationalProfile = this

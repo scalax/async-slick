@@ -74,8 +74,7 @@ abstract class MutatingResultAction[T](rsm: ResultSetMapping, elemType: Type, co
       new Mutator(
         inv.results(0, defaultConcurrency = jdbcInvokerComponent.invokerMutateConcurrency, defaultType = jdbcInvokerComponent.invokerMutateType)(ctx.session).right.get,
         ctx.bufferNext,
-        inv
-      )
+        inv)
     }
     mu.emitStream(ctx, limit)
   }

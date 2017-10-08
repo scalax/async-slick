@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
 
 /** Abstract profile for accessing SQL databases via JDBC. */
 trait JdbcProfile extends JdbcActionComponent
-    with JdbcStatementBuilderComponent with SqlProfile with JdbcTypesComponent with JdbcModelComponent /*with JdbcInvokerComponent*/ /* internal: */ /*with JdbcMappingCompilerComponent*/ { self =>
+  with JdbcStatementBuilderComponent with SqlProfile with JdbcTypesComponent with JdbcModelComponent /*with JdbcInvokerComponent*/ /* internal: */ /*with JdbcMappingCompilerComponent*/ { self =>
 
   //@deprecated("Use the Profile object directly instead of calling `.profile` on it", "3.2")
   //override val profile: JdbcProfile = this
@@ -48,13 +48,13 @@ trait JdbcProfile extends JdbcActionComponent
   //final def buildSequenceSchemaDescription(seq: Sequence[_]): DDL //= createSequenceDDLBuilder(seq).buildDDL
 
   trait API extends LowPriorityAPI
-      with RelationalAPI
-      with ImplicitColumnTypes
-      with slick.async.lifted.LiftedAliases
-      with slick.async.dbio.DBIOAliases
-      with ExtensionMethodConversions
-      with BasicProfileAPI
-      with JdbcProfileAPI { api: JdbcTypes =>
+    with RelationalAPI
+    with ImplicitColumnTypes
+    with slick.async.lifted.LiftedAliases
+    with slick.async.dbio.DBIOAliases
+    with ExtensionMethodConversions
+    with BasicProfileAPI
+    with JdbcProfileAPI { api: JdbcTypes =>
     override protected lazy val crudCompiler = self.crudCompiler
     //override protected lazy val columnTypes = self.columnTypes
 

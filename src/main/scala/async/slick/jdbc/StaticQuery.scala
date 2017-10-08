@@ -35,8 +35,7 @@ object ActionBasedSQLInterpolation {
     reify {
       SQLActionBuilder(
         ctxt.Expr[Seq[Any]](macroTreeBuilder.queryParts).splice,
-        ctxt.Expr[SetParameter[Unit]](macroTreeBuilder.pconvTree).splice
-      )
+        ctxt.Expr[SetParameter[Unit]](macroTreeBuilder.pconvTree).splice)
     }
   }
 
@@ -46,8 +45,7 @@ object ActionBasedSQLInterpolation {
     reify {
       val res: SQLActionBuilder = SQLActionBuilder(
         ctxt.Expr[Seq[Any]](macroTreeBuilder.queryParts).splice,
-        ctxt.Expr[SetParameter[Unit]](macroTreeBuilder.pconvTree).splice
-      )
+        ctxt.Expr[SetParameter[Unit]](macroTreeBuilder.pconvTree).splice)
       res.asUpdate
     }
   }
@@ -81,8 +79,7 @@ object ActionBasedSQLInterpolation {
       val rconv = ctxt.Expr[GetResult[Any]](macroTreeBuilder.rconvTree(rTypes)).splice
       val res: SQLActionBuilder = SQLActionBuilder(
         ctxt.Expr[Seq[Any]](macroTreeBuilder.queryParts).splice,
-        ctxt.Expr[SetParameter[Unit]](macroTreeBuilder.pconvTree).splice
-      )
+        ctxt.Expr[SetParameter[Unit]](macroTreeBuilder.pconvTree).splice)
       res.as(rconv)
     }
   }

@@ -23,8 +23,7 @@ abstract class ProfileTable[T](_tableTag: Tag, _schemaName: Option[String], _tab
     if (tt == null) throw new NullPointerException(
       "implicit TypedType[C] for column[C] is null. " +
         "This may be an initialization order problem. " +
-        "When using a MappedColumnType, you may want to change it from a val to a lazy val or def."
-    )
+        "When using a MappedColumnType, you may want to change it from a val to a lazy val or def.")
     new Rep.TypedRep[C] {
       override def toNode =
         Select((tableTag match {

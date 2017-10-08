@@ -29,13 +29,10 @@ abstract class MySQLSequenceDDLBuilder[T](seq: Sequence[T]) extends SequenceDDLB
         "create function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_nextval") + "() returns " + sqlType + " begin update " +
           sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + " set id=last_insert_id(" + incExpr + "); return last_insert_id(); end",
         "create function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_currval") + "() returns " + sqlType + " begin " +
-          "select max(id) into @v from " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + "; return @v; end"
-      ),
+          "select max(id) into @v from " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq") + "; return @v; end"),
       Iterable(
         "drop function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_currval"),
         "drop function " + sqlUtilsComponent.quoteIdentifier(seq.name + "_nextval"),
-        "drop table " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq")
-      )
-    )
+        "drop table " + sqlUtilsComponent.quoteIdentifier(seq.name + "_seq")))
   }
 }

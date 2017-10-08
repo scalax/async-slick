@@ -66,8 +66,8 @@ trait JdbcDataSourceFactory {
 
 /** A JdbcDataSource for a `DataSource` */
 class DataSourceJdbcDataSource(val ds: DataSource, val keepAliveConnection: Boolean,
-    val maxConnections: Option[Int],
-    val connectionPreparer: ConnectionPreparer = null) extends JdbcDataSource {
+  val maxConnections: Option[Int],
+  val connectionPreparer: ConnectionPreparer = null) extends JdbcDataSource {
   private[this] var openedKeepAliveConnection: Connection = null
 
   def createConnection(): Connection = {
@@ -139,9 +139,9 @@ trait DriverBasedJdbcDataSource extends JdbcDataSource {
 /** A JdbcDataSource for lookup via a `Driver` or the `DriverManager` */
 @deprecated("Use DataSourceJdbcDataSource with DriverDataSource instead", "3.1")
 class DriverJdbcDataSource(url: String, user: String, password: String, prop: Properties,
-    driverName: String = null, driver: Driver = null,
-    connectionPreparer: ConnectionPreparer = null,
-    keepAliveConnection: Boolean = false) extends DriverBasedJdbcDataSource {
+  driverName: String = null, driver: Driver = null,
+  connectionPreparer: ConnectionPreparer = null,
+  keepAliveConnection: Boolean = false) extends DriverBasedJdbcDataSource {
   private[this] var openedKeepAliveConnection: Connection = null
 
   if (driver eq null) registerDriver(driverName, url)
@@ -192,8 +192,7 @@ object DriverJdbcDataSource extends JdbcDataSourceFactory {
       c.getStringOr("driver", c.getStringOr("driverClassName")),
       driver,
       if (cp.isLive) cp else null,
-      c.getBooleanOr("keepAliveConnection")
-    )
+      c.getBooleanOr("keepAliveConnection"))
   }
 }
 

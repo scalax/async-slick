@@ -28,8 +28,7 @@ class SQLiteModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(i
               "new java.sql.Timestamp(java.util.Calendar.getInstance().getTime().getTime())"
             else
               throw new Exception(s"Failed to parse timestamp - $s")
-          }
-        )
+          })
         val v2 = v.replaceAll("\"", "")
         convertors.collectFirst(fn => Try(fn(v2)) match {
           case Success(v) => Some(v)
@@ -51,7 +50,5 @@ class SQLiteModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(i
   }
   override def readIndices(t: MTable) = super.readIndices(t).map(
     _.filterNot(
-      _.exists(_.indexName.exists(_.startsWith("sqlite_autoindex_")))
-    )
-  )
+      _.exists(_.indexName.exists(_.startsWith("sqlite_autoindex_")))))
 }

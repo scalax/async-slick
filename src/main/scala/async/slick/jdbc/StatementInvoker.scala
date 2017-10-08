@@ -26,8 +26,7 @@ abstract class StatementInvoker[+R] extends Invoker[R] { self =>
     defaultType: ResultSetType = ResultSetType.ForwardOnly,
     defaultConcurrency: ResultSetConcurrency = ResultSetConcurrency.ReadOnly,
     defaultHoldability: ResultSetHoldability = ResultSetHoldability.Default,
-    autoClose: Boolean = true
-  )(implicit session: JdbcBackend#Session): Either[Int, PositionedResultIterator[R]] = {
+    autoClose: Boolean = true)(implicit session: JdbcBackend#Session): Either[Int, PositionedResultIterator[R]] = {
     //TODO Support multiple results
     val statement = getStatement
     val st = session.prepareStatement(statement, defaultType, defaultConcurrency, defaultHoldability)
@@ -42,8 +41,7 @@ abstract class StatementInvoker[+R] extends Invoker[R] { self =>
           val meta = rs.getMetaData
           Vector(
             1.to(meta.getColumnCount).map(_.toString),
-            1.to(meta.getColumnCount).map(idx => meta.getColumnLabel(idx)).to[ArrayBuffer]
-          )
+            1.to(meta.getColumnCount).map(idx => meta.getColumnLabel(idx)).to[ArrayBuffer])
         } else null
         val logBuffer = if (doLogResult) new ArrayBuffer[ArrayBuffer[Any]] else null
         var rowCount = 0

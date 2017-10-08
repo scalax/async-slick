@@ -51,40 +51,35 @@ trait CrudCompiler { self =>
     new InsertCompiler(InsertCompiler.NonAutoInc),
     new JdbcInsertCodeGen(createInsertBuilder) {
       override lazy val mappingCompiler = self.mappingCompiler
-    }
-  )
+    })
   lazy val forceInsertCompiler: QueryCompiler = QueryCompiler(
     Phase.assignUniqueSymbols,
     Phase.inferTypes,
     new InsertCompiler(InsertCompiler.AllColumns),
     new JdbcInsertCodeGen(createInsertBuilder) {
       override lazy val mappingCompiler = self.mappingCompiler
-    }
-  )
+    })
   lazy val upsertCompiler: QueryCompiler = QueryCompiler(
     Phase.assignUniqueSymbols,
     Phase.inferTypes,
     new InsertCompiler(InsertCompiler.AllColumns),
     new JdbcInsertCodeGen(createUpsertBuilder) {
       override lazy val mappingCompiler = self.mappingCompiler
-    }
-  )
+    })
   lazy val checkInsertCompiler = QueryCompiler(
     Phase.assignUniqueSymbols,
     Phase.inferTypes,
     new InsertCompiler(InsertCompiler.PrimaryKeys),
     new JdbcInsertCodeGen(createCheckInsertBuilder) {
       override lazy val mappingCompiler = self.mappingCompiler
-    }
-  )
+    })
   lazy val updateInsertCompiler = QueryCompiler(
     Phase.assignUniqueSymbols,
     Phase.inferTypes,
     new InsertCompiler(InsertCompiler.AllColumns),
     new JdbcInsertCodeGen(createUpdateInsertBuilder) {
       override lazy val mappingCompiler = self.mappingCompiler
-    }
-  )
+    })
   //def compileInsert(tree: Node) = new JdbcCompiledInsert(tree)
 
 }

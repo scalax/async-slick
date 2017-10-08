@@ -19,13 +19,12 @@ abstract class SequenceDDLBuilder(seq: Sequence[_]) {
 }
 
 abstract class Sequence[T](
-    val name: String,
-    val _minValue: Option[T],
-    val _maxValue: Option[T],
-    val _increment: Option[T],
-    val _start: Option[T],
-    val _cycle: Boolean
-)(implicit val tpe: TypedType[T], val integral: Integral[T]) { self =>
+  val name: String,
+  val _minValue: Option[T],
+  val _maxValue: Option[T],
+  val _increment: Option[T],
+  val _start: Option[T],
+  val _cycle: Boolean)(implicit val tpe: TypedType[T], val integral: Integral[T]) { self =>
   val sqlUtilsComponent: BasicSqlUtilsComponent
 
   def min(v: T) = new Sequence[T](name, Some(v), _maxValue, _increment, _start, _cycle) {

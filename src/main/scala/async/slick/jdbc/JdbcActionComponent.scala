@@ -84,8 +84,7 @@ trait JdbcActionComponent extends SqlActionComponent { self =>
      */
     def transactionally: DBIOAction[R, S, E with Effect.Transactional] = SynchronousDatabaseAction.fuseUnsafe(
       StartTransaction.andThen(a).cleanUp(eo => if (eo.isEmpty) Commit else Rollback)(DBIO.sameThreadExecutionContext)
-      .asInstanceOf[DBIOAction[R, S, E with Effect.Transactional]]
-    )
+        .asInstanceOf[DBIOAction[R, S, E with Effect.Transactional]])
 
     /**
      * Run this Action with the specified transaction isolation level. This should be used around
@@ -120,8 +119,7 @@ trait JdbcActionComponent extends SqlActionComponent { self =>
       rsConcurrency: ResultSetConcurrency = null,
       rsHoldability: ResultSetHoldability = null,
       statementInit: Statement => Unit = null,
-      fetchSize: Int = 0
-    ): DBIOAction[R, S, E] =
+      fetchSize: Int = 0): DBIOAction[R, S, E] =
       (new PushStatementParameters(JdbcBackend.StatementParameters(rsType, rsConcurrency, rsHoldability, statementInit, fetchSize))).
         andThen(a).andFinally(PopStatementParameters)
   }
@@ -560,8 +558,7 @@ trait JdbcActionComponent extends SqlActionComponent { self =>
 
     class InsertOrUpdateAction(value: U) extends SimpleJdbcProfileAction[SingleInsertOrUpdateResult](
       "InsertOrUpdateAction",
-      if (useServerSideUpsert) Vector(compiled.upsert.sql) else Vector(compiled.checkInsert.sql, compiled.updateInsert.sql, compiled.standardInsert.sql)
-    ) {
+      if (useServerSideUpsert) Vector(compiled.upsert.sql) else Vector(compiled.checkInsert.sql, compiled.updateInsert.sql, compiled.standardInsert.sql)) {
 
       def run(ctx: Backend#Context, sql: Vector[String]) = {
         def f: SingleInsertOrUpdateResult =
